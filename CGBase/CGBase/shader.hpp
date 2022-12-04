@@ -53,6 +53,9 @@ public:
      * @param m Projection matrix
      */
     void SetProjection(const glm::mat4& m) const;
+
+    //Postavlja uCol;
+    void SetColor(const float, const float, const float);
 private:
     unsigned mId;
 

@@ -26,6 +26,11 @@ void Shader::SetProjection(const glm::mat4& m) const {
     SetUniform4m("uProjection", m);
 }
 
+void Shader::SetColor(const float r, const float g, const float b) {
+    glUniform3f(glGetUniformLocation(mId, "uCol"), r,g,b);
+}
+
+
 unsigned
 Shader::GetId() const {
     return mId;
