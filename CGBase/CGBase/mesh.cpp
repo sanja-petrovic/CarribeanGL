@@ -28,10 +28,10 @@ Mesh::processMesh(const aiMesh* mesh, aiMaterial* MeshMaterial, const std::strin
         //Upotreba normala za boje
         std::vector<float> Normals = { mesh->mNormals[VertexIndex].x, mesh->mNormals[VertexIndex].y, mesh->mNormals[VertexIndex].z };
         Vertices.insert(Vertices.end(), Normals.begin(), Normals.end());
-        aiColor4D Color = { 1.0f, 1.0f, 1.0f, 1.0f };
+        //aiColor4D Color = { 1.0f, 1.0f, 1.0f, 1.0f };
         // NOTE(Jovan): If material isn't being rendered properly
         // comment out the line below
-        aiGetMaterialColor(MeshMaterial, AI_MATKEY_COLOR_DIFFUSE, &Color); // <-- This one
+        //aiGetMaterialColor(MeshMaterial, AI_MATKEY_COLOR_DIFFUSE, &Color); // <-- This one
         //std::vector<float> VertexColor = { Color.r, Color.g, Color.b };
         //Vertices.insert(Vertices.end(), VertexColor.begin(), VertexColor.end());
 

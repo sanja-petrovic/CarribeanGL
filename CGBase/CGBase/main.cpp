@@ -1,16 +1,3 @@
-/**
-* Autor: Nedeljko Tesanovic
-* Namjena: Demonstracija upotrebe sablonskog projekta za ucitavanje i prikaz modela, 3D transformacije, perspektivne projekcije i klase za bafere
-* Original file info
- * @file main.cpp
- * @author Jovan Ivosevic
- * @brief Base project for Computer Graphics course
- * @version 0.1
- * @date 2022-10-09
- *
- * @copyright Copyright (c) 2022
- *
- */
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <chrono>
@@ -32,17 +19,10 @@ void processInput(GLFWwindow* window);
 
 const int WindowWidth = 1920;
 const int WindowHeight = 1080;
-const std::string WindowTitle = "CarribeanGL";
+const std::string WindowTitle = "CaribbeanGL";
 const float TargetFPS = 60.0f;
 const float TargetFrameTime = 1.0f / TargetFPS;
 
-static void
-KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode) {
-    bool IsDown = action == GLFW_PRESS || action == GLFW_REPEAT;
-    switch (key) {
-        case GLFW_KEY_ESCAPE: glfwSetWindowShouldClose(window, GLFW_TRUE); break;
-    }
-}
 
 static void
 ErrorCallback(int error, const char* description) {
@@ -54,6 +34,7 @@ Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = WindowWidth / 2.0f;
 float lastY = WindowHeight / 2.0f;
 bool firstMouse = true;
+
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
@@ -68,6 +49,7 @@ int main() {
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwSetErrorCallback(ErrorCallback);
+
 
     Window = glfwCreateWindow(WindowWidth, WindowHeight, WindowTitle.c_str(), 0, 0);
     if (!Window) {
@@ -98,6 +80,7 @@ int main() {
         glfwTerminate();
         return -1;
     }
+
     glm::mat4 m(1.0f);
 
     glEnable(GL_DEPTH_TEST);
@@ -129,9 +112,7 @@ int main() {
 
         //Doggo
         Basic.SetColor(0, 0, 0);
-        m = glm::scale(glm::mat4(1.0f) , glm::vec3(0.4, 0.4, 0.4));        
-        m = glm::rotate(m, glm::radians(180.0f), glm::vec3(-1.0, 0.0, 0.0));
-        m = glm::rotate(m, glm::radians(180.0f), glm::vec3(0.0, 0.0, 1.0));
+        m = glm::scale(glm::mat4(1.0f) , glm::vec3(0.4, 0.4, 0.4));
         Basic.SetModel(m);
         Doggo.Render();
 
@@ -152,7 +133,6 @@ int main() {
     return 0;
 }
 
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 void processInput(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -168,14 +148,11 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
 
-
-// glfw: whenever the mouse moves, this callback is called
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
     float xpos = static_cast<float>(xposIn);
@@ -197,7 +174,6 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
     camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
-// glfw: whenever the mouse scroll wheel scrolls, this callback is called
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(static_cast<float>(yoffset));
