@@ -15,7 +15,9 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow* window);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void process_input(GLFWwindow* window);
+void toggle_clouds();
 
 const int WindowWidth = 1920;
 const int WindowHeight = 1080;
@@ -64,6 +66,8 @@ int main() {
     glfwSetCursorPosCallback(Window, mouse_callback);
     glfwSetScrollCallback(Window, scroll_callback);
 
+    
+
     GLenum GlewError = glewInit();
     if (GlewError != GLEW_OK) {
         std::cerr << "Failed to init glew: " << glewGetErrorString(GlewError) << std::endl;
@@ -72,6 +76,41 @@ int main() {
     }
 
     Shader Basic("shaders/basic.vert", "shaders/basic.frag");
+
+    float cubeVertices[] = 
+    {
+        -0.2, -0.2, -0.2,       0.0, 0.0, 0.0,
+        +0.2, -0.2, -0.2,       0.0, 0.0, 0.0,
+        -0.2, -0.2, +0.2,       0.0, 0.0, 0.0,
+        +0.2, -0.2, +0.2,       0.0, 0.0, 0.0,
+
+        -0.2, +0.2, -0.2,       0.0, 0.0, 0.0,
+        +0.2, +0.2, -0.2,       0.0, 0.0, 0.0,
+        -0.2, +0.2, +0.2,       0.0, 0.0, 0.0,
+        +0.2, +0.2, +0.2,       0.0, 0.0, 0.0,
+    };
+
+    unsigned int cubeIndices[] = {
+        0, 1, 3,
+        0, 2, 3,
+
+        4, 6, 7,
+        4, 5, 7,
+
+        3, 6, 2,
+        3, 6, 7,
+
+        0, 4, 1,
+        1, 4, 5,
+
+        0, 6, 2,
+        0, 4, 6,
+
+        1, 3, 7,
+        1, 7, 5
+    };
+
+    Renderable cube(cubeVertices, sizeof(cubeVertices), cubeIndices, sizeof(cubeIndices));
 
     Model Doggo("ki61/1.obj");
     if (!Doggo.Load())
@@ -90,13 +129,14 @@ int main() {
 
     float FrameStartTime = glfwGetTime();
     float FrameEndTime = glfwGetTime();
+    glfwSetKeyCallback(Window, key_callback);
     float dt = FrameEndTime - FrameStartTime;
     while (!glfwWindowShouldClose(Window)) {
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        processInput(Window);
+        process_input(Window);
         glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -108,10 +148,51 @@ int main() {
 
         glm::mat4 view = camera.GetViewMatrix();
         Basic.SetView(view);
+        //Crtanje oblaka
+
+        if (cloudsEnabled) {
+            Basic.SetColor(1, 1, 1);
+
+            m = glm::translate(glm::mat4(1.0f), glm::vec3(-1.2, 1.1, -0.4));
+            m = glm::rotate(m, glm::radians(35.0f), glm::vec3(1.0, 1.0, 1.0));
+            m = glm::scale(m, glm::vec3(3.0, 2.0, -1.0));
+            Basic.SetModel(m);
+            cube.Render();
+
+            m = glm::translate(glm::mat4(1.0f), glm::vec3(1.50, 2.4, 2.0));
+            m = glm::rotate(m, glm::radians(-20.0f), glm::vec3(1.0, 1.0, 0.0));
+            m = glm::scale(m, glm::vec3(3.0f));
+            Basic.SetModel(m);
+            cube.Render();
+
+            m = glm::translate(glm::mat4(1.0f), glm::vec3(-1.3, 1.6, -0.4));
+            m = glm::rotate(m, glm::radians(30.0f), glm::vec3(1.0, 1.0, 1.0));
+            m = glm::scale(m, glm::vec3(2.0, 5.0, -1.0));
+            Basic.SetModel(m);
+            cube.Render();
+
+            m = glm::translate(glm::mat4(1.0f), glm::vec3(-1.6, 1.5, 1.2));
+            m = glm::rotate(m, glm::radians(05.0f), glm::vec3(1.0, 0.5, 1.0));
+            m = glm::scale(m, glm::vec3(3.0, 2.0, 1.5));
+            Basic.SetModel(m);
+            cube.Render();
+
+            m = glm::translate(glm::mat4(1.0f), glm::vec3(1, -2.4, -0.25));
+            m = glm::scale(m, glm::vec3(3.0, 2.0, 2.0));
+            m = glm::rotate(m, glm::radians(15.0f), glm::vec3(1.0, 1.0, 1.0));
+            Basic.SetModel(m);
+            cube.Render();
+
+            m = glm::translate(glm::mat4(1.0f), glm::vec3(1.5, 1.5, 0.1));
+            m = glm::rotate(m, glm::radians(135.0f), glm::vec3(1.0, 1.0, 1.0));
+            m = glm::scale(m, glm::vec3(2.0, 1.0, 1.0));
+            Basic.SetModel(m);
+            cube.Render();
+        }
 
         //Doggo
         Basic.SetColor(0, 0, 0);
-        m = glm::scale(glm::mat4(1.0f) , glm::vec3(0.4, 0.4, 0.4));
+        m = glm::scale(glm::mat4(1.0f) , glm::vec3(0.2, 0.2, 0.2));
         Basic.SetModel(m);
         Doggo.Render();
 
@@ -132,19 +213,23 @@ int main() {
     return 0;
 }
 
-void processInput(GLFWwindow* window)
+void process_input(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    /*if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
+        camera.ProcessKeyboard(BACKWARD, deltaTime);*/
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_C && action == GLFW_PRESS)
+        cloudsEnabled = !cloudsEnabled;
 }
 
 void toggle_clouds() {
