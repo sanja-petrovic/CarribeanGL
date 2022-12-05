@@ -37,6 +37,7 @@ bool firstMouse = true;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+bool cloudsEnabled = true;
 
 int main() {
     GLFWwindow* Window = 0;
@@ -44,7 +45,6 @@ int main() {
         std::cerr << "Failed to init glfw" << std::endl;
         return -1;
     }
-
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -85,7 +85,6 @@ int main() {
 
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
     glClearColor(0.0, 0.3, 1.0, 1.0);
 
 
@@ -146,6 +145,10 @@ void processInput(GLFWwindow* window)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+}
+
+void toggle_clouds() {
+    cloudsEnabled = !cloudsEnabled;
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
