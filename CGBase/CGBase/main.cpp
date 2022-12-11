@@ -24,6 +24,7 @@ const int WindowHeight = 1080;
 const std::string WindowTitle = "CaribbeanGL";
 const float TargetFPS = 60.0f;
 const float TargetFrameTime = 1.0f / TargetFPS;
+const float SEA_LEVEL_CHANGE = 0.1f;
 
 
 static void
@@ -92,26 +93,25 @@ int main() {
 
     unsigned int cubeIndices[] = {
         0, 1, 3,
-        0, 2, 3,
+        0, 3, 2,
 
         4, 6, 7,
-        4, 5, 7,
+        5, 4, 7,
 
         3, 6, 2,
-        3, 6, 7,
+        6, 3, 7,
 
         0, 4, 1,
         1, 4, 5,
 
-        0, 6, 2,
-        0, 4, 6,
+        6, 0, 2,
+        4, 0, 6,
 
-        1, 3, 7,
-        1, 7, 5
+        3, 1, 7,
+        7, 1, 5
     };
 
     Renderable cube(cubeVertices, sizeof(cubeVertices), cubeIndices, sizeof(cubeIndices));
-
     Model Doggo("ki61/1.obj");
     if (!Doggo.Load())
     {
@@ -122,15 +122,17 @@ int main() {
 
     glm::mat4 m(1.0f);
 
-    glEnable(GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-    glClearColor(0.0, 0.3, 1.0, 1.0);
+    glEnable(GL_DEPTH_TEST);
+    glClearColor(0.69, 0.86, 0.97, 1.0);
 
 
     float FrameStartTime = glfwGetTime();
     float FrameEndTime = glfwGetTime();
     glfwSetKeyCallback(Window, key_callback);
     float dt = FrameEndTime - FrameStartTime;
+    float seaLevel = 100;
+    float seaLevelChange = SEA_LEVEL_CHANGE;
     while (!glfwWindowShouldClose(Window)) {
         float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
@@ -142,53 +144,72 @@ int main() {
 
         FrameStartTime = glfwGetTime();
         glUseProgram(Basic.GetId());
+        
 
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)WindowWidth / (float)WindowHeight, 0.1f, 500.0f);
         Basic.SetProjection(projection);
 
         glm::mat4 view = camera.GetViewMatrix();
         Basic.SetView(view);
-        //Crtanje oblaka
-
+        
+        //Clouds
         if (cloudsEnabled) {
             Basic.SetColor(1, 1, 1);
+            m = glm::translate(glm::mat4(1.0f), glm::vec3(-1.2, 3, -0.4));
+            m = glm::scale(m, glm::vec3(4.0, 1.5, -1.0));
+            Basic.SetModel(m);
+            cube.Render();
 
-            m = glm::translate(glm::mat4(1.0f), glm::vec3(-1.2, 1.1, -0.4));
-            m = glm::rotate(m, glm::radians(35.0f), glm::vec3(1.0, 1.0, 1.0));
+            Basic.SetColor(1, 1, 1);
+            m = glm::translate(glm::mat4(1.0f), glm::vec3(-2.9, 2.6, -0.7));
+            m = glm::scale(m, glm::vec3(1.0, 1.0, -1.0));
+            Basic.SetModel(m);
+            cube.Render();
+
+            Basic.SetColor(1, 1, 1);
+            m = glm::translate(glm::mat4(1.0f), glm::vec3(1.2, 3, -0.4));
+            m = glm::scale(m, glm::vec3(2.0, 1.0, -1.0));
+            Basic.SetModel(m);
+            cube.Render();
+
+            Basic.SetColor(1, 1, 1);
+            m = glm::translate(glm::mat4(1.0f), glm::vec3(1.9, 3, -0.7));
             m = glm::scale(m, glm::vec3(3.0, 2.0, -1.0));
             Basic.SetModel(m);
             cube.Render();
 
-            m = glm::translate(glm::mat4(1.0f), glm::vec3(1.50, 2.4, 2.0));
-            m = glm::rotate(m, glm::radians(-20.0f), glm::vec3(1.0, 1.0, 0.0));
-            m = glm::scale(m, glm::vec3(3.0f));
+            Basic.SetColor(1, 1, 1);
+            m = glm::translate(glm::mat4(1.0f), glm::vec3(-8, 3, -0.4));
+            m = glm::scale(m, glm::vec3(4.0, 1.0, -1.0));
             Basic.SetModel(m);
             cube.Render();
 
-            m = glm::translate(glm::mat4(1.0f), glm::vec3(-1.3, 1.6, -0.4));
-            m = glm::rotate(m, glm::radians(30.0f), glm::vec3(1.0, 1.0, 1.0));
-            m = glm::scale(m, glm::vec3(2.0, 5.0, -1.0));
-            Basic.SetModel(m);
-            cube.Render();
-
-            m = glm::translate(glm::mat4(1.0f), glm::vec3(-1.6, 1.5, 1.2));
-            m = glm::rotate(m, glm::radians(05.0f), glm::vec3(1.0, 0.5, 1.0));
-            m = glm::scale(m, glm::vec3(3.0, 2.0, 1.5));
-            Basic.SetModel(m);
-            cube.Render();
-
-            m = glm::translate(glm::mat4(1.0f), glm::vec3(1, -2.4, -0.25));
-            m = glm::scale(m, glm::vec3(3.0, 2.0, 2.0));
-            m = glm::rotate(m, glm::radians(15.0f), glm::vec3(1.0, 1.0, 1.0));
-            Basic.SetModel(m);
-            cube.Render();
-
-            m = glm::translate(glm::mat4(1.0f), glm::vec3(1.5, 1.5, 0.1));
-            m = glm::rotate(m, glm::radians(135.0f), glm::vec3(1.0, 1.0, 1.0));
-            m = glm::scale(m, glm::vec3(2.0, 1.0, 1.0));
-            Basic.SetModel(m);
-            cube.Render();
         }
+        
+        //Sun
+        Basic.SetColor(1, 0.84, 0.43);
+        m = glm::translate(glm::mat4(1.0f), glm::vec3(0, 2, 1));
+        m = glm::scale(m, glm::vec3(0.5, 0.5, -1));
+        Basic.SetModel(m);
+        cube.Render();
+        
+        //Sea
+        Basic.SetColor(0.16, 0.69, 1);
+        m = glm::translate(glm::mat4(1.0f), glm::vec3(0, -23, -13));
+        m = glm::scale(m, glm::vec3(700, seaLevel , 300));
+        Basic.SetModel(m);
+        cube.Render();
+
+        seaLevel += seaLevelChange;
+        if (seaLevel > 105) seaLevelChange = -SEA_LEVEL_CHANGE;
+        if (seaLevel < 100) seaLevelChange = SEA_LEVEL_CHANGE;
+
+        //Islands
+        Basic.SetColor(0.96, 0.69, 0.27);
+        m = glm::translate(glm::mat4(1.0f), glm::vec3(0, -2, -13));
+        m = glm::scale(m, glm::vec3(20, 6, -20));
+        Basic.SetModel(m);
+        cube.Render();
 
         //Doggo
         Basic.SetColor(0, 0, 0);
