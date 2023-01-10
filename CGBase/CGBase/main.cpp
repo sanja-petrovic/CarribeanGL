@@ -151,6 +151,7 @@ int main() {
 
         glm::mat4 view = camera.GetViewMatrix();
         Basic.SetView(view);
+
         //Sea
         Basic.SetColor(0.16, 0.69, 1);
         m = glm::translate(glm::mat4(1.0f), glm::vec3(0, -23, -13));
@@ -159,8 +160,9 @@ int main() {
         cube.Render();
 
         seaLevel += seaLevelChange;
-        if (seaLevel > 105) seaLevelChange = -SEA_LEVEL_CHANGE;
+        if (seaLevel > 108) seaLevelChange = -SEA_LEVEL_CHANGE;
         if (seaLevel < 100) seaLevelChange = SEA_LEVEL_CHANGE;
+
         //Clouds
         if (cloudsEnabled) {
             Basic.SetColor(1, 1, 1);
@@ -202,7 +204,7 @@ int main() {
         Basic.SetModel(m);
         cube.Render();
         
-
+        glDisable(GL_DEPTH_TEST);
         //Islands
         Basic.SetColor(0.96, 0.69, 0.27);
         m = glm::translate(glm::mat4(1.0f), glm::vec3(0, -2, -13));
@@ -228,6 +230,7 @@ int main() {
         Basic.SetModel(m);
         cube.Render();
 
+        glEnable(GL_DEPTH_TEST);
         //Palm tree
         Basic.SetColor(0.37, 0.19, 0.11);
         m = glm::translate(glm::mat4(1.0f), glm::vec3(1, 1, -13));
