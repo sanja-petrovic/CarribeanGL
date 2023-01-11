@@ -305,6 +305,7 @@ int main() {
         //Doggo
         Basic.SetColor(1, 0.72, 0.37);
         m = glm::scale(glm::mat4(1.0f) , glm::vec3(0.2, 0.2, 0.2));
+        m = glm::translate(glm::mat4(1.0f), glm::vec3(0.6, 0.0, -13));
         Basic.SetModel(m);
         Doggo.Render();
 
@@ -329,10 +330,10 @@ void process_input(GLFWwindow* window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-    /*if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
         camera.ProcessKeyboard(FORWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime);*/
+        camera.ProcessKeyboard(BACKWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
