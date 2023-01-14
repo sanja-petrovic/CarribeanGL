@@ -10,7 +10,6 @@
 #include "camera.hpp"
 #include "model.hpp"
 #include "texture.hpp"
-#include "renderable.hpp"
 using namespace std;
 
 
@@ -155,42 +154,9 @@ int main() {
     unsigned WaterDiffuseTexture = Texture::LoadImageToTexture("ki61/textures/background-sea-water.jpg");
     unsigned WaterSpecularTexture = Texture::LoadImageToTexture("ki61/textures/water-specular.jpg");
     unsigned SandDiffuseTexture = Texture::LoadImageToTexture("ki61/textures/sand.jpg");
+    unsigned LeafDiffuseTexture = Texture::LoadImageToTexture("ki61/textures/leaf.jpg");
+    unsigned TreeDiffuseTexture = Texture::LoadImageToTexture("ki61/textures/tree.jpg");
 
-
-    float cubeVertices[] =
-    {
-        -0.2, -0.2, -0.2,       0.0, 0.0, 0.0,
-        +0.2, -0.2, -0.2,       0.0, 0.0, 0.0,
-        -0.2, -0.2, +0.2,       0.0, 0.0, 0.0,
-        +0.2, -0.2, +0.2,       0.0, 0.0, 0.0,
-
-        -0.2, +0.2, -0.2,       0.0, 0.0, 0.0,
-        +0.2, +0.2, -0.2,       0.0, 0.0, 0.0,
-        -0.2, +0.2, +0.2,       0.0, 0.0, 0.0,
-        +0.2, +0.2, +0.2,       0.0, 0.0, 0.0,
-    };
-
-    unsigned int cubeIndices[] = {
-        0, 1, 3,
-        0, 3, 2,
-
-        4, 6, 7,
-        5, 4, 7,
-
-        3, 6, 2,
-        6, 3, 7,
-
-        0, 4, 1,
-        1, 4, 5,
-
-        6, 0, 2,
-        4, 0, 6,
-
-        3, 1, 7,
-        7, 1, 5
-    };
-
-    Renderable cube(cubeVertices, sizeof(cubeVertices), cubeIndices, sizeof(cubeIndices));
 
     std::vector<float> CubeVertices = {
         // X     Y     Z     NX    NY    NZ    U     V    FRONT SIDE
