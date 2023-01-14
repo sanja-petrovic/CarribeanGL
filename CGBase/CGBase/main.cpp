@@ -1,30 +1,55 @@
-#include <GL/glew.h>
+﻿#include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <chrono>
-#include <thread>
-
+#include <iostream>
+#include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
-#include <iostream>
+#include <chrono>
+#include <thread>
 #include "shader.hpp"
+#include "camera.hpp"
 #include "model.hpp"
+#include "texture.hpp"
 #include "renderable.hpp"
-#include "camera.h"
+using namespace std;
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
-void process_input(GLFWwindow* window);
-void toggle_clouds();
 
-const int WindowWidth = 1920;
-const int WindowHeight = 1080;
-const std::string WindowTitle = "CaribbeanGL";
+float
+Clamp(float x, float min, float max) {
+    return x < min ? min : x > max ? max : x;
+}
+
+int WindowWidth = 1920;
+int WindowHeight = 1080;
 const float TargetFPS = 60.0f;
-const float TargetFrameTime = 1.0f / TargetFPS;
+const std::string WindowTitle = "CaribbeanGL";
 const float SEA_LEVEL_CHANGE = 0.05f;
+
+enum ShadingMode {
+    GOURAUD = 0,
+    PHONG,
+    PHONG_MATERIAL,
+    PHONG_MATERIAL_TEXTURE
+};
+
+struct Input {
+    bool MoveLeft;
+    bool MoveRight;
+    bool MoveUp;
+    bool MoveDown;
+    bool LookLeft;
+    bool LookRight;
+    bool LookUp;
+    bool LookDown;
+};
+
+struct EngineState {
+    Input* mInput;
+    Camera* mCamera;
+    unsigned mShadingMode;
+    bool mDrawDebugLines;
+    float mDT;
+};
 
 
 static void
@@ -32,15 +57,59 @@ ErrorCallback(int error, const char* description) {
     std::cerr << "GLFW Error: " << description << std::endl;
 }
 
+static void
+KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode) {
+    EngineState* State = (EngineState*)glfwGetWindowUserPointer(window);
+    Input* UserInput = State->mInput;
+    bool IsDown = action == GLFW_PRESS || action == GLFW_REPEAT;
+    switch (key) {
+    case GLFW_KEY_A: UserInput->MoveLeft = IsDown; break;
+    case GLFW_KEY_D: UserInput->MoveRight = IsDown; break;
+    case GLFW_KEY_W: UserInput->MoveUp = IsDown; break;
+    case GLFW_KEY_S: UserInput->MoveDown = IsDown; break;
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-float lastX = WindowWidth / 2.0f;
-float lastY = WindowHeight / 2.0f;
-bool firstMouse = true;
+    case GLFW_KEY_RIGHT: UserInput->LookLeft = IsDown; break;
+    case GLFW_KEY_LEFT: UserInput->LookRight = IsDown; break;
+    case GLFW_KEY_UP: UserInput->LookUp = IsDown; break;
+    case GLFW_KEY_DOWN: UserInput->LookDown = IsDown; break;
 
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
-bool cloudsEnabled = true;
+    case GLFW_KEY_1: State->mShadingMode = 0; break;
+    case GLFW_KEY_2: State->mShadingMode = 1; break;
+    case GLFW_KEY_3: State->mShadingMode = 2; break;
+    case GLFW_KEY_4: State->mShadingMode = 3; break;
+
+    case GLFW_KEY_L: {
+        if (IsDown) {
+            State->mDrawDebugLines ^= true; break;
+        }
+    } break;
+
+    case GLFW_KEY_ESCAPE: glfwSetWindowShouldClose(window, GLFW_TRUE); break;
+    }
+}
+
+static void
+FramebufferSizeCallback(GLFWwindow* window, int width, int height) {
+    WindowWidth = width;
+    WindowHeight = height;
+    glViewport(0, 0, width, height);
+}
+
+
+static void
+HandleInput(EngineState* state) {
+    Input* UserInput = state->mInput;
+    Camera* FPSCamera = state->mCamera;
+    if (UserInput->MoveLeft) FPSCamera->Move(-1.0f, 0.0f, state->mDT);
+    if (UserInput->MoveRight) FPSCamera->Move(1.0f, 0.0f, state->mDT);
+    if (UserInput->MoveDown) FPSCamera->Move(0.0f, -1.0f, state->mDT);
+    if (UserInput->MoveUp) FPSCamera->Move(0.0f, 1.0f, state->mDT);
+
+    if (UserInput->LookLeft) FPSCamera->Rotate(1.0f, 0.0f, state->mDT);
+    if (UserInput->LookRight) FPSCamera->Rotate(-1.0f, 0.0f, state->mDT);
+    if (UserInput->LookDown) FPSCamera->Rotate(0.0f, -1.0f, state->mDT);
+    if (UserInput->LookUp) FPSCamera->Rotate(0.0f, 1.0f, state->mDT);
+}
 
 int main() {
     GLFWwindow* Window = 0;
@@ -48,11 +117,10 @@ int main() {
         std::cerr << "Failed to init glfw" << std::endl;
         return -1;
     }
+
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwSetErrorCallback(ErrorCallback);
-
 
     Window = glfwCreateWindow(WindowWidth, WindowHeight, WindowTitle.c_str(), 0, 0);
     if (!Window) {
@@ -60,14 +128,7 @@ int main() {
         glfwTerminate();
         return -1;
     }
-
     glfwMakeContextCurrent(Window);
-
-    glfwSetFramebufferSizeCallback(Window, framebuffer_size_callback);
-    glfwSetCursorPosCallback(Window, mouse_callback);
-    glfwSetScrollCallback(Window, scroll_callback);
-
-    
 
     GLenum GlewError = glewInit();
     if (GlewError != GLEW_OK) {
@@ -76,9 +137,27 @@ int main() {
         return -1;
     }
 
-    Shader Basic("shaders/basic.vert", "shaders/basic.frag");
+    EngineState State = { 0 };
+    Camera FPSCamera;
+    Input UserInput = { 0 };
+    State.mCamera = &FPSCamera;
+    State.mInput = &UserInput;
+    glfwSetWindowUserPointer(Window, &State);
 
-    float cubeVertices[] = 
+    glfwSetErrorCallback(ErrorCallback);
+    glfwSetFramebufferSizeCallback(Window, FramebufferSizeCallback);
+    glfwSetKeyCallback(Window, KeyCallback);
+
+    glViewport(0.0f, 0.0f, WindowWidth, WindowHeight);
+    glEnable(GL_DEPTH_TEST);
+    glEnable(GL_CULL_FACE);
+
+    unsigned WaterDiffuseTexture = Texture::LoadImageToTexture("ki61/textures/background-sea-water.jpg");
+    unsigned WaterSpecularTexture = Texture::LoadImageToTexture("ki61/textures/water-specular.jpg");
+    unsigned SandDiffuseTexture = Texture::LoadImageToTexture("ki61/textures/sand.jpg");
+
+
+    float cubeVertices[] =
     {
         -0.2, -0.2, -0.2,       0.0, 0.0, 0.0,
         +0.2, -0.2, -0.2,       0.0, 0.0, 0.0,
@@ -112,271 +191,193 @@ int main() {
     };
 
     Renderable cube(cubeVertices, sizeof(cubeVertices), cubeIndices, sizeof(cubeIndices));
-    Model Doggo("ki61/1.obj");
-    if (!Doggo.Load())
+
+    std::vector<float> CubeVertices = {
+        // X     Y     Z     NX    NY    NZ    U     V    FRONT SIDE
+        -0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, // L D
+         0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, // R D
+        -0.5f,  0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, // L U
+         0.5f, -0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, // R D
+         0.5f,  0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // R U
+        -0.5f,  0.5f, 0.5f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f, // L U
+        // LEFT SIDE
+        -0.5f, -0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // L D
+        -0.5f, -0.5f,  0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // R D
+        -0.5f,  0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // L U
+        -0.5f, -0.5f,  0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // R D
+        -0.5f,  0.5f,  0.5f, -1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // R U
+        -0.5f,  0.5f, -0.5f, -1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // L U
+        // RIGHT SIDE
+        0.5f, -0.5f,  0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // L D
+        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // R D
+        0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // L U
+        0.5f, -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, // R D
+        0.5f,  0.5f, -0.5f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, // R U
+        0.5f,  0.5f,  0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, // L U
+        // BOTTOM SIDE
+        -0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 0.0f, // L D
+         0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, // R D
+        -0.5f, -0.5f,  0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // L U
+         0.5f, -0.5f, -0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f, // R D
+         0.5f, -0.5f,  0.5f, 0.0f, -1.0f, 0.0f, 1.0f, 1.0f, // R U
+        -0.5f, -0.5f,  0.5f, 0.0f, -1.0f, 0.0f, 0.0f, 1.0f, // L U
+        // TOP SIDE
+        -0.5f,  0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, // L D
+         0.5f,  0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // R D
+        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // L U
+         0.5f,  0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // R D
+         0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 1.0f, // R U
+        -0.5f,  0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, // L U
+        // BACK SIDE
+        0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f, // L D
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, // R D
+         0.5f,  0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, // L U
+        -0.5f, -0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f, // R D
+        -0.5f,  0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f, // R U
+         0.5f,  0.5f, -0.5f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f, // L U
+    };
+
+    unsigned CubeVAO;
+    glGenVertexArrays(1, &CubeVAO);
+    glBindVertexArray(CubeVAO);
+    unsigned CubeVBO;
+    glGenBuffers(1, &CubeVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, CubeVBO);
+    glBufferData(GL_ARRAY_BUFFER, CubeVertices.size() * sizeof(float), CubeVertices.data(), GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+
+    Shader ColorShader("shaders/color.vert", "shaders/color.frag");
+
+    Shader PhongShaderMaterialTexture("shaders/basic.vert", "shaders/phong_material_texture.frag");
+    glUseProgram(PhongShaderMaterialTexture.GetId());
+    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Direction", glm::vec3(0, -8, 6));
+    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Ka", glm::vec3(0.68, 0.66, 0.56)); //žućkasta ambijentalna
+    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Kd", glm::vec3(0.68, 0.66, 0.56)); //žućkasta difuzna
+    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Ks", glm::vec3(0.8, 0.8, 0.8)); //bela spekularna
+
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Ka", glm::vec3(0.8, 0.8, 0.8));
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Kd", glm::vec3(0.5, 0.5, 0.5));
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Ks", glm::vec3(0.5, 0.5, 0.5));
+    PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kc", 1.0f);
+    PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kl", 0.092f);
+    PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kq", 0.032f);
+
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Position", glm::vec3(0.0f, 3.5f, -2.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Direction", glm::vec3(0.0f, -1.0f, 1.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Ka", glm::vec3(0.5, 0.5, 0.5));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Kd", glm::vec3(0.5, 0.5, 0.5));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Ks", glm::vec3(0.5, 0.5, 0.5));
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Kc", 1.0f);
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Kl", 0.092f);
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Kq", 0.032f);
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.InnerCutOff", glm::cos(glm::radians(12.5f)));
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.OuterCutOff", glm::cos(glm::radians(17.5f)));
+    PhongShaderMaterialTexture.SetUniform1i("uMaterial.Kd", 0);
+    PhongShaderMaterialTexture.SetUniform1i("uMaterial.Ks", 0.5);
+    PhongShaderMaterialTexture.SetUniform1f("uMaterial.Shininess", 100.0f);
+    glUseProgram(0);
+
+    glm::mat4 Projection = glm::perspective(45.0f, WindowWidth / (float)WindowHeight, 0.1f, 100.0f);
+    glm::mat4 View = glm::lookAt(FPSCamera.GetPosition(), FPSCamera.GetTarget(), FPSCamera.GetUp());
+    glm::mat4 ModelMatrix(1.0f);
+
+    float TargetFrameTime = 1.0f / TargetFPS;
+    float StartTime = glfwGetTime();
+    float EndTime = glfwGetTime();
+    glClearColor(0.69, 0.86, 0.97, 1.0);
+
+    Shader* CurrentShader = &PhongShaderMaterialTexture;
+    float seaLevel = 10.0f;
+    float seaLevelChange = SEA_LEVEL_CHANGE;
+    Model Cat("ki61/12221_Cat_v1_l3.obj");
+    if (!Cat.Load())
     {
         std::cout << "Failed to load model!\n";
         glfwTerminate();
         return -1;
     }
-
-    glm::mat4 m(1.0f);
-
-    glEnable(GL_CULL_FACE);
-    glEnable(GL_DEPTH_TEST);
-    glClearColor(0.69, 0.86, 0.97, 1.0);
-
-
-    float FrameStartTime = glfwGetTime();
-    float FrameEndTime = glfwGetTime();
-    glfwSetKeyCallback(Window, key_callback);
-    float dt = FrameEndTime - FrameStartTime;
-    float seaLevel = 100;
-    float seaLevelChange = SEA_LEVEL_CHANGE;
     while (!glfwWindowShouldClose(Window)) {
-        float currentFrame = static_cast<float>(glfwGetTime());
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
-
-        process_input(Window);
         glfwPollEvents();
+        HandleInput(&State);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        FrameStartTime = glfwGetTime();
-        glUseProgram(Basic.GetId());
-        
-
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)WindowWidth / (float)WindowHeight, 0.1f, 500.0f);
-        Basic.SetProjection(projection);
-
-        glm::mat4 view = camera.GetViewMatrix();
-        Basic.SetView(view);
+        View = glm::lookAt(FPSCamera.GetPosition(), FPSCamera.GetTarget(), FPSCamera.GetUp());
+        StartTime = glfwGetTime();
+        glUseProgram(CurrentShader->GetId());
+        CurrentShader->SetProjection(Projection);
+        CurrentShader->SetView(View);
+        CurrentShader->SetUniform3f("uViewPos", FPSCamera.GetPosition());
 
         //Sea
-        Basic.SetColor(0.16, 0.69, 1);
-        m = glm::translate(glm::mat4(1.0f), glm::vec3(0, -23, -13));
-        m = glm::scale(m, glm::vec3(700, seaLevel, 400));
-        Basic.SetModel(m);
-        cube.Render();
-
+        ModelMatrix = glm::mat4(1.0f);
+        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0, -23, -13));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(700, seaLevel, 400));
+        CurrentShader->SetModel(ModelMatrix);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, WaterDiffuseTexture);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, WaterSpecularTexture);
+        glBindVertexArray(CubeVAO);
+        cout << seaLevel << endl;
         seaLevel += seaLevelChange;
-        if (seaLevel > 108) seaLevelChange = -SEA_LEVEL_CHANGE;
-        if (seaLevel < 100) seaLevelChange = SEA_LEVEL_CHANGE;
+        if (seaLevel > 15) seaLevelChange = -SEA_LEVEL_CHANGE;
+        if (seaLevel < 10) seaLevelChange = SEA_LEVEL_CHANGE;
+        glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
 
-        //Clouds
-        if (cloudsEnabled) {
-            Basic.SetColor(1, 1, 1);
-            m = glm::translate(glm::mat4(1.0f), glm::vec3(-1.2, 3, -0.4));
-            m = glm::scale(m, glm::vec3(4.0, 1.5, -1.0));
-            Basic.SetModel(m);
-            cube.Render();
-
-            Basic.SetColor(1, 1, 1);
-            m = glm::translate(glm::mat4(1.0f), glm::vec3(-2.9, 2.6, -0.7));
-            m = glm::scale(m, glm::vec3(1.0, 1.0, -1.0));
-            Basic.SetModel(m);
-            cube.Render();
-
-            Basic.SetColor(1, 1, 1);
-            m = glm::translate(glm::mat4(1.0f), glm::vec3(1.2, 3, -0.4));
-            m = glm::scale(m, glm::vec3(2.0, 1.0, -1.0));
-            Basic.SetModel(m);
-            cube.Render();
-
-            Basic.SetColor(1, 1, 1);
-            m = glm::translate(glm::mat4(1.0f), glm::vec3(1.9, 3, -0.7));
-            m = glm::scale(m, glm::vec3(3.0, 2.0, -1.0));
-            Basic.SetModel(m);
-            cube.Render();
-
-            Basic.SetColor(1, 1, 1);
-            m = glm::translate(glm::mat4(1.0f), glm::vec3(-8, 3, -0.4));
-            m = glm::scale(m, glm::vec3(4.0, 1.0, -1.0));
-            Basic.SetModel(m);
-            cube.Render();
-
-        }
-        
-        //Sun
-        Basic.SetColor(1, 0.84, 0.43);
-        m = glm::translate(glm::mat4(1.0f), glm::vec3(0, 2, 1));
-        m = glm::scale(m, glm::vec3(0.5, 0.5, -1));
-        Basic.SetModel(m);
-        cube.Render();
-        
-        glDisable(GL_DEPTH_TEST);
         //Islands
-        Basic.SetColor(0.96, 0.69, 0.27);
-        m = glm::translate(glm::mat4(1.0f), glm::vec3(0, -2, -13));
-        m = glm::scale(m, glm::vec3(30, 6, -20));
-        Basic.SetModel(m);
-        cube.Render();
+        glUseProgram(CurrentShader->GetId()); 
+        CurrentShader->SetProjection(Projection);
+        CurrentShader->SetView(View);
+        ModelMatrix = glm::mat4(1.0f);
+        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0.6, -17.5, -30));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(30, 6, 10));
+        CurrentShader->SetModel(ModelMatrix);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, SandDiffuseTexture);
+        glBindVertexArray(CubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
+        //Cat
+        ModelMatrix = glm::mat4(1.0f);
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.05, 0.05, 0.05));
+        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0.6, -253.5, -500));
+        ModelMatrix = glm::rotate(ModelMatrix, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
+        CurrentShader->SetModel(ModelMatrix);
+        Cat.Render();
 
-        Basic.SetColor(0.96, 0.69, 0.27);
-        m = glm::translate(glm::mat4(1.0f), glm::vec3(-30, -2, -13));
-        m = glm::scale(m, glm::vec3(20, 6, -40));
-        Basic.SetModel(m);
-        cube.Render();
-
-        Basic.SetColor(0.96, 0.69, 0.27);
-        m = glm::translate(glm::mat4(1.0f), glm::vec3(40, -2, 2));
-        m = glm::scale(m, glm::vec3(10, 4, -10));
-        Basic.SetModel(m);
-        cube.Render();
-
-        Basic.SetColor(0.96, 0.69, 0.27);
-        m = glm::translate(glm::mat4(1.0f), glm::vec3(30, -2, -40));
-        m = glm::scale(m, glm::vec3(25, 4, -10));
-        Basic.SetModel(m);
-        cube.Render();
-
-        glEnable(GL_DEPTH_TEST);
-        //Palm tree
-        Basic.SetColor(0.37, 0.19, 0.11);
-        m = glm::translate(glm::mat4(1.0f), glm::vec3(1, 1, -13));
-        m = glm::scale(m, glm::vec3(0.6, 10, -1));
-        Basic.SetModel(m);
-        cube.Render();
-
-        //Palm tree leaves
-        Basic.SetColor(0.16, 0.5, 0.18);
-        m = glm::translate(glm::mat4(1.0f), glm::vec3(1, 3.9, -13));
-        m = glm::rotate(m, glm::radians(0.0f), glm::vec3(1.0, 1.0, 0.0));
-        m = glm::scale(m, glm::vec3(1, 3, -1));
-        Basic.SetModel(m);
-        cube.Render();
-
-        Basic.SetColor(0.21, 0.64, 0.23);
-        m = glm::translate(glm::mat4(1.0f), glm::vec3(1.5, 3.9, -13));
-        m = glm::rotate(m, glm::radians(110.0f), glm::vec3(1.0, 1.0, 0.0));
-        m = glm::scale(m, glm::vec3(1, 3, -1));
-        Basic.SetModel(m);
-        cube.Render();
-
-        Basic.SetColor(0.21, 0.64, 0.23);
-        m = glm::translate(glm::mat4(1.0f), glm::vec3(0.6, 3.8, -13));
-        m = glm::rotate(m, glm::radians(90.0f), glm::vec3(-1.0, 1.0, 0.0));
-        m = glm::scale(m, glm::vec3(1, 3, -1));
-        Basic.SetModel(m);
-        cube.Render();
-
-        Basic.SetColor(0.16, 0.5, 0.18);
-        m = glm::translate(glm::mat4(1.0f), glm::vec3(0.4, 3.5, -13));
-        m = glm::rotate(m, glm::radians(180.0f), glm::vec3(1.0, 1.0, 1.0));
-        m = glm::scale(m, glm::vec3(1, 4, -1));
-        Basic.SetModel(m);
-        cube.Render();
-
-        Basic.SetColor(0.16, 0.5, 0.18);
-        m = glm::translate(glm::mat4(1.0f), glm::vec3(1.4, 3.5, -13));
-        m = glm::rotate(m, glm::radians(135.0f), glm::vec3(1.0, 1.0, 0.0));
-        m = glm::scale(m, glm::vec3(1, 4, -1));
-        Basic.SetModel(m);
-        cube.Render();
-
-        Basic.SetColor(0.21, 0.64, 0.23);
-        m = glm::translate(glm::mat4(1.0f), glm::vec3(1.4, 3.2, -13));
-        m = glm::rotate(m, glm::radians(180.0f), glm::vec3(1.0, 1.0, 0.0));
-        m = glm::scale(m, glm::vec3(0.6, 4, -1));
-        Basic.SetModel(m);
-        cube.Render();
-
-        Basic.SetColor(0.21, 0.64, 0.23);
-        m = glm::translate(glm::mat4(1.0f), glm::vec3(0.5, 3.2, -13));
-        m = glm::rotate(m, glm::radians(180.0f), glm::vec3(1.0, -1.0, 0.0));
-        m = glm::scale(m, glm::vec3(0.6, 4, -1));
-        Basic.SetModel(m);
-        cube.Render();
-
-        Basic.SetColor(0.16, 0.5, 0.18);
-        m = glm::translate(glm::mat4(1.0f), glm::vec3(0.6, 3.0, -13));
-        m = glm::rotate(m, glm::radians(250.0f), glm::vec3(-1.0, -1.0, 0.0));
-        m = glm::scale(m, glm::vec3(0.6, 3, -1));
-        Basic.SetModel(m);
-        cube.Render();
-
-        Basic.SetColor(0.16, 0.5, 0.18);
-        m = glm::translate(glm::mat4(1.0f), glm::vec3(1.4, 3.0, -13));
-        m = glm::rotate(m, glm::radians(90.0f), glm::vec3(-1.0, 1.0, 0.0));
-        m = glm::scale(m, glm::vec3(0.6, 3, -1));
-        Basic.SetModel(m);
-        cube.Render();
-
-        //Doggo
-        Basic.SetColor(1, 0.72, 0.37);
-        m = glm::scale(glm::mat4(1.0f) , glm::vec3(0.2, 0.2, 0.2));
-        m = glm::translate(glm::mat4(1.0f), glm::vec3(0.6, 0.0, -13));
-        Basic.SetModel(m);
-        Doggo.Render();
-
+        //Sun
+        glUseProgram(ColorShader.GetId());
+        ColorShader.SetProjection(Projection);
+        ColorShader.SetView(View);
+        ModelMatrix = glm::mat4(1.0f); 
+        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0, 17, -50));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1, 1, -1));
+        ColorShader.SetModel(ModelMatrix);
+        glBindVertexArray(CubeVAO);
+        ColorShader.SetUniform3f("uColor", glm::vec3(1.0f, 0.9f, 0.31f));
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+        
+        glBindVertexArray(0);
         glUseProgram(0);
         glfwSwapBuffers(Window);
 
-        FrameEndTime = glfwGetTime();
-        dt = FrameEndTime - FrameStartTime;
-        if (dt < TargetFPS) {
-            int DeltaMS = (int)((TargetFrameTime - dt) * 1e3f);
+        EndTime = glfwGetTime();
+        float WorkTime = EndTime - StartTime;
+        if (WorkTime < TargetFrameTime) {
+            int DeltaMS = (int)((TargetFrameTime - WorkTime) * 1000.0f);
             std::this_thread::sleep_for(std::chrono::milliseconds(DeltaMS));
-            FrameEndTime = glfwGetTime();
+            EndTime = glfwGetTime();
         }
-        dt = FrameEndTime - FrameStartTime;
+        State.mDT = EndTime - StartTime;
     }
 
     glfwTerminate();
     return 0;
 }
-
-void process_input(GLFWwindow* window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        camera.ProcessKeyboard(FORWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        camera.ProcessKeyboard(BACKWARD, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        camera.ProcessKeyboard(LEFT, deltaTime);
-    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        camera.ProcessKeyboard(RIGHT, deltaTime);
-}
-
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
-    if (key == GLFW_KEY_C && action == GLFW_PRESS)
-        cloudsEnabled = !cloudsEnabled;
-}
-
-void toggle_clouds() {
-    cloudsEnabled = !cloudsEnabled;
-}
-
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    glViewport(0, 0, width, height);
-}
-
-void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
-{
-    float xpos = static_cast<float>(xposIn);
-    float ypos = static_cast<float>(yposIn);
-
-    if (firstMouse)
-    {
-        lastX = xpos;
-        lastY = ypos;
-        firstMouse = false;
-    }
-
-    float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos;
-
-    lastX = xpos;
-    lastY = ypos;
-
-    camera.ProcessMouseMovement(xoffset, yoffset);
-}
-
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
-{
-    camera.ProcessMouseScroll(static_cast<float>(yoffset));
-}
-
