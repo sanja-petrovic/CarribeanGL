@@ -50,6 +50,7 @@ struct EngineState {
     float mDT;
 };
 
+bool cloudsEnabled = true;
 
 static void
 ErrorCallback(int error, const char* description) {
@@ -76,6 +77,12 @@ KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode) {
     case GLFW_KEY_2: State->mShadingMode = 1; break;
     case GLFW_KEY_3: State->mShadingMode = 2; break;
     case GLFW_KEY_4: State->mShadingMode = 3; break;
+
+    case GLFW_KEY_C: {
+        if (IsDown) {
+            cloudsEnabled ^= true; break;
+        }
+    } break;
 
     case GLFW_KEY_L: {
         if (IsDown) {
@@ -156,6 +163,8 @@ int main() {
     unsigned SandDiffuseTexture = Texture::LoadImageToTexture("ki61/textures/sand.jpg");
     unsigned LeafDiffuseTexture = Texture::LoadImageToTexture("ki61/textures/leaf.jpg");
     unsigned TreeDiffuseTexture = Texture::LoadImageToTexture("ki61/textures/tree.jpg");
+    unsigned CloudDiffuseTexture = Texture::LoadImageToTexture("ki61/textures/cloud.png");
+    unsigned CloudSpecularTexture = Texture::LoadImageToTexture("ki61/textures/cloud-specular.png");
 
 
     std::vector<float> CubeVertices = {
@@ -224,10 +233,10 @@ int main() {
 
     Shader PhongShaderMaterialTexture("shaders/basic.vert", "shaders/phong_material_texture.frag");
     glUseProgram(PhongShaderMaterialTexture.GetId());
-    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Direction", glm::vec3(0, -8, 6));
+    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Direction", glm::vec3(0, -15, -10));
     PhongShaderMaterialTexture.SetUniform3f("uDirLight.Ka", glm::vec3(0.68, 0.66, 0.56)); //žućkasta ambijentalna
     PhongShaderMaterialTexture.SetUniform3f("uDirLight.Kd", glm::vec3(0.68, 0.66, 0.56)); //žućkasta difuzna
-    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Ks", glm::vec3(0.8, 0.8, 0.8)); //bela spekularna
+    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Ks", glm::vec3(0.9, 0.9, 0.9)); //bela spekularna
 
     PhongShaderMaterialTexture.SetUniform3f("uPointLight.Ka", glm::vec3(0.8, 0.8, 0.8));
     PhongShaderMaterialTexture.SetUniform3f("uPointLight.Kd", glm::vec3(0.5, 0.5, 0.5));
@@ -236,7 +245,7 @@ int main() {
     PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kl", 0.092f);
     PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kq", 0.032f);
 
-    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Position", glm::vec3(0.0f, 3.5f, -2.0f));
+    /**/PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Position", glm::vec3(0.0f, 3.5f, -2.0f));
     PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Direction", glm::vec3(0.0f, -1.0f, 1.0f));
     PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Ka", glm::vec3(0.5, 0.5, 0.5));
     PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Kd", glm::vec3(0.5, 0.5, 0.5));
@@ -333,6 +342,60 @@ int main() {
         glBindVertexArray(CubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
 
+        //Clouds
+        if (cloudsEnabled) {
+            CurrentShader->SetProjection(Projection);
+            CurrentShader->SetView(View);
+            ModelMatrix = glm::mat4(1.0f);
+            ModelMatrix = glm::translate(ModelMatrix, glm::vec3(30, 17, -70));
+            ModelMatrix = glm::scale(ModelMatrix, glm::vec3(30, 10, 10));
+            CurrentShader->SetModel(ModelMatrix);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, CloudDiffuseTexture);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, CloudSpecularTexture);
+            glBindVertexArray(CubeVAO);
+            glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
+
+            CurrentShader->SetProjection(Projection);
+            CurrentShader->SetView(View);
+            ModelMatrix = glm::mat4(1.0f);
+            ModelMatrix = glm::translate(ModelMatrix, glm::vec3(-30, 17, -70));
+            ModelMatrix = glm::scale(ModelMatrix, glm::vec3(20, 8, 10));
+            CurrentShader->SetModel(ModelMatrix);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, CloudDiffuseTexture);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, CloudSpecularTexture);
+            glBindVertexArray(CubeVAO);
+            glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
+
+            CurrentShader->SetProjection(Projection);
+            CurrentShader->SetView(View);
+            ModelMatrix = glm::mat4(1.0f);
+            ModelMatrix = glm::translate(ModelMatrix, glm::vec3(80, 14, -75));
+            ModelMatrix = glm::scale(ModelMatrix, glm::vec3(15, 5, 6));
+            CurrentShader->SetModel(ModelMatrix);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, CloudDiffuseTexture);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, CloudSpecularTexture);
+            glBindVertexArray(CubeVAO);
+            glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
+
+            CurrentShader->SetProjection(Projection);
+            CurrentShader->SetView(View);
+            ModelMatrix = glm::mat4(1.0f);
+            ModelMatrix = glm::translate(ModelMatrix, glm::vec3(-80, 34, -75));
+            ModelMatrix = glm::scale(ModelMatrix, glm::vec3(15, 5, 6));
+            CurrentShader->SetModel(ModelMatrix);
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, CloudDiffuseTexture);
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, CloudSpecularTexture);
+            glBindVertexArray(CubeVAO);
+            glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
+        }
 
         //Cat
         ModelMatrix = glm::mat4(1.0f);
@@ -355,7 +418,7 @@ int main() {
         glBindVertexArray(CubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
 
-        //Palm leves
+        //Palm leaves
 
         //Sun
         glUseProgram(ColorShader.GetId());
