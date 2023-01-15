@@ -44,6 +44,7 @@ struct EngineState {
 };
 
 bool cloudsEnabled = true;
+bool fireVisible = true;
 
 static void
 ErrorCallback(int error, const char* description) {
@@ -226,9 +227,10 @@ int main() {
     PhongShaderMaterialTexture.SetUniform3f("uDirLight.Kd", glm::vec3(0.68, 0.66, 0.56)); //žućkasta difuzna
     PhongShaderMaterialTexture.SetUniform3f("uDirLight.Ks", glm::vec3(0.9, 0.9, 0.9)); //bela spekularna
 
-    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Ka", glm::vec3(0.8, 0.8, 0.8));
-    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Kd", glm::vec3(0.5, 0.5, 0.5));
-    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Ks", glm::vec3(0.5, 0.5, 0.5));
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Position", glm::vec3(-5, -12, -27));
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Ka", glm::vec3(1, 0.67, 0.42));
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Kd", glm::vec3(1, 0.43, 0));
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Ks", glm::vec3(1, 0.85, 0.29));
     PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kc", 1.0f);
     PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kl", 0.092f);
     PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kq", 0.032f);
@@ -471,6 +473,23 @@ int main() {
         glBindVertexArray(CubeVAO);
         ColorShader.SetUniform3f("uColor", glm::vec3(1.0f, 0.9f, 0.31f));
         glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
+        //Fire
+        fireVisible = int(glfwGetTime()) % 2 == 0;
+
+        if (fireVisible) {
+            glUseProgram(ColorShader.GetId());
+            ColorShader.SetProjection(Projection);
+            ColorShader.SetView(View);
+            ModelMatrix = glm::mat4(1.0f);
+            ModelMatrix = glm::translate(ModelMatrix, glm::vec3(-5, -12, -27));
+            ModelMatrix = glm::scale(ModelMatrix, glm::vec3(3, 3, -4));
+            ColorShader.SetModel(ModelMatrix);
+            glBindVertexArray(CubeVAO);
+            ColorShader.SetUniform3f("uColor", glm::vec3(1, 0.64, 0.15));
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
         
         glBindVertexArray(0);
         glUseProgram(0);
