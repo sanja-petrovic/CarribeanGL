@@ -83,13 +83,13 @@ void main() {
 	vec3 SpotSpecularColor = SpotSpecular * uSpotlight.Ks * vec3(texture(uMaterial.Ks, UV));
 
 	float SpotlightDistance = length(uSpotlight.Position - vWorldSpaceFragment);
-	float SpotAttenuation = 1.0f / (uSpotlight.Kc + uSpotlight.Kl * SpotlightDistance + uSpotlight.Kq * (SpotlightDistance * SpotlightDistance));
+	float SpotAttenuation = 2.5f / (uSpotlight.Kc + uSpotlight.Kl * SpotlightDistance + uSpotlight.Kq * (SpotlightDistance * SpotlightDistance));
 
 	float Theta = dot(SpotlightVector, normalize(-uSpotlight.Direction));
 	float Epsilon = uSpotlight.InnerCutOff - uSpotlight.OuterCutOff;
 	float SpotIntensity = clamp((Theta - uSpotlight.OuterCutOff) / Epsilon, 0.0f, 1.0f);
 	vec3 SpotColor = SpotIntensity * SpotAttenuation * (SpotAmbientColor + SpotDiffuseColor + SpotSpecularColor);
 	
-	vec3 FinalColor = DirColor + PtColor + SpotColor;
+	vec3 FinalColor =  SpotColor;
 	FragColor = vec4(FinalColor, 1.0f);
 }

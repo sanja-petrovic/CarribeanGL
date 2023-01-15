@@ -225,9 +225,9 @@ int main() {
 
     Shader PhongShaderMaterialTexture("shaders/basic.vert", "shaders/phong_material_texture.frag");
     glUseProgram(PhongShaderMaterialTexture.GetId());
-    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Direction", glm::vec3(1.0f, -1.0f, 0.0f));
-    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Ka", glm::vec3(0.68f, 0.66f, 0.56f)); //žućkasta ambijentalna
-    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Kd", glm::vec3(0.68f, 0.66f, 0.56f)); //žućkasta difuzna
+    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Direction", glm::vec3(1.0f, -15.0f, -15.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Ka", glm::vec3(0.5, 0.47, 0.32)); //žućkasta ambijentalna
+    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Kd", glm::vec3(0.5, 0.47, 0.32)); //žućkasta difuzna
     PhongShaderMaterialTexture.SetUniform3f("uDirLight.Ks", glm::vec3(0.9f, 0.9f, 0.9f)); //bela spekularna 
     PhongShaderMaterialTexture.SetUniform1f("uDirLight.Kc", 1.0f);
     PhongShaderMaterialTexture.SetUniform1f("uDirLight.Kl", 0.092f);
@@ -241,16 +241,18 @@ int main() {
     PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kl", 0.092f);
     PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kq", 0.032f);
 
-   PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Position", glm::vec3(20, -1, -80));
-    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Direction", glm::vec3(0.6, -17.5, -30));
-    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Ka", glm::vec3(0.5, 0.5, 0.5));
-    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Kd", glm::vec3(0.5, 0.5, 0.5));
-    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Ks", glm::vec3(0.5, 0.5, 0.5));
-    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Kc", 1.0f);
-    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Kl", 0.092f);
-    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Kq", 0.032f);
-    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.InnerCutOff", glm::cos(glm::radians(12.5f)));
-    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.OuterCutOff", glm::cos(glm::radians(17.5f)));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Position", glm::vec3(40, -10, -70));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Direction", glm::vec3(-170, 0, 1000));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Ka", glm::vec3(1.0f, 1.0f, 1.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Kd", glm::vec3(1.0f, 1.0f, 1.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Ks", glm::vec3(1.0f, 1.0f, 1.0f));
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Kc", 0.05f);
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Kl", 0.1f);
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Kq", 0.02f);
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.InnerCutOff", glm::cos(glm::radians(30.0f)));
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.OuterCutOff", glm::cos(glm::radians(205.0f)));
+
+    
     PhongShaderMaterialTexture.SetUniform1i("uMaterial.Kd", 0);
     PhongShaderMaterialTexture.SetUniform1i("uMaterial.Ks", 1);
     PhongShaderMaterialTexture.SetUniform1f("uMaterial.Shininess", 128.0f);
@@ -263,7 +265,7 @@ int main() {
     float TargetFrameTime = 1.0f / TargetFPS;
     float StartTime = glfwGetTime();
     float EndTime = glfwGetTime();
-    glClearColor(0.69, 0.86, 0.97, 1.0);
+    glClearColor(0.3, 0.66, 0.58, 1.0);
 
     Shader* CurrentShader = &PhongShaderMaterialTexture;
     float seaLevel = 12.0f;
@@ -291,6 +293,18 @@ int main() {
         CurrentShader->SetView(View);
         CurrentShader->SetUniform3f("uViewPos", FPSCamera.GetPosition());
 
+        #pragma region Lighthouse
+        ModelMatrix = glm::mat4(1.0f);
+        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(40, -14, -70));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1, 10, -1));
+        CurrentShader->SetModel(ModelMatrix);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, LighthouseDiffuseTexture);
+        glBindVertexArray(CubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
+
+        #pragma endregion
+
         #pragma region Sea
         ModelMatrix = glm::mat4(1.0f);
         ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0, -23, -13));
@@ -306,7 +320,6 @@ int main() {
         if (seaLevel < 12) seaLevelChange = SEA_LEVEL_CHANGE;
         glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
         #pragma endregion
-
 
         #pragma region Islands
         ModelMatrix = glm::mat4(1.0f);
@@ -473,16 +486,7 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
         #pragma endregion
 
-        #pragma region Lighthouses
-        ModelMatrix = glm::mat4(1.0f);
-        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(20, -1, -80));
-        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1, 5, -1));
-        CurrentShader->SetModel(ModelMatrix);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, LighthouseDiffuseTexture);
-        glBindVertexArray(CubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
-        #pragma endregion
+        
         glBindVertexArray(0);
         glUseProgram(0);
         glfwSwapBuffers(Window);
