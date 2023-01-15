@@ -261,7 +261,7 @@ int main() {
     glClearColor(0.69, 0.86, 0.97, 1.0);
 
     Shader* CurrentShader = &PhongShaderMaterialTexture;
-    float seaLevel = 10.0f;
+    float seaLevel = 12.0f;
     float seaLevelChange = SEA_LEVEL_CHANGE;
     Model Cat("ki61/12221_Cat_v1_l3.obj");
     if (!Cat.Load())
@@ -295,7 +295,7 @@ int main() {
         cout << seaLevel << endl;
         seaLevel += seaLevelChange;
         if (seaLevel > 15) seaLevelChange = -SEA_LEVEL_CHANGE;
-        if (seaLevel < 10) seaLevelChange = SEA_LEVEL_CHANGE;
+        if (seaLevel < 12) seaLevelChange = SEA_LEVEL_CHANGE;
         glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
 
         //Islands
@@ -341,6 +341,21 @@ int main() {
         ModelMatrix = glm::rotate(ModelMatrix, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
         CurrentShader->SetModel(ModelMatrix);
         Cat.Render();
+
+        //Palm tree
+        glUseProgram(CurrentShader->GetId());
+        CurrentShader->SetProjection(Projection);
+        CurrentShader->SetView(View);
+        ModelMatrix = glm::mat4(1.0f);
+        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(1.5, -6.5, -27.5));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1, 14, 1));
+        CurrentShader->SetModel(ModelMatrix);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, TreeDiffuseTexture);
+        glBindVertexArray(CubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
+
+        //Palm leves
 
         //Sun
         glUseProgram(ColorShader.GetId());
