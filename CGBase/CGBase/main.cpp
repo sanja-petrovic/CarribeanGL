@@ -24,13 +24,6 @@ const float TargetFPS = 60.0f;
 const std::string WindowTitle = "CaribbeanGL";
 const float SEA_LEVEL_CHANGE = 0.05f;
 
-enum ShadingMode {
-    GOURAUD = 0,
-    PHONG,
-    PHONG_MATERIAL,
-    PHONG_MATERIAL_TEXTURE
-};
-
 struct Input {
     bool MoveLeft;
     bool MoveRight;
@@ -72,11 +65,6 @@ KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode) {
     case GLFW_KEY_LEFT: UserInput->LookRight = IsDown; break;
     case GLFW_KEY_UP: UserInput->LookUp = IsDown; break;
     case GLFW_KEY_DOWN: UserInput->LookDown = IsDown; break;
-
-    case GLFW_KEY_1: State->mShadingMode = 0; break;
-    case GLFW_KEY_2: State->mShadingMode = 1; break;
-    case GLFW_KEY_3: State->mShadingMode = 2; break;
-    case GLFW_KEY_4: State->mShadingMode = 3; break;
 
     case GLFW_KEY_C: {
         if (IsDown) {
@@ -419,6 +407,45 @@ int main() {
         glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
 
         //Palm leaves
+        glUseProgram(CurrentShader->GetId());
+        CurrentShader->SetProjection(Projection);
+        CurrentShader->SetView(View);
+        ModelMatrix = glm::mat4(1.0f);
+        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(-0.5, 1, -25.5));
+        ModelMatrix = glm::rotate(ModelMatrix, glm::radians(30.0f), glm::vec3(1.0, 1.0, 0.0));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(5, 1, 1));
+        CurrentShader->SetModel(ModelMatrix);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, LeafDiffuseTexture);
+        glBindVertexArray(CubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
+
+        /*glUseProgram(CurrentShader->GetId());
+        CurrentShader->SetProjection(Projection);
+        CurrentShader->SetView(View);
+        ModelMatrix = glm::mat4(1.0f);
+        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0.5, 2, -25.5));
+        ModelMatrix = glm::rotate(ModelMatrix, glm::radians(90.0f), glm::vec3(-1.0, 1.0, 0.0));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(5, 1, 1));
+        CurrentShader->SetModel(ModelMatrix);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, LeafDiffuseTexture);
+        glBindVertexArray(CubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);*/
+
+        glUseProgram(CurrentShader->GetId());
+        CurrentShader->SetProjection(Projection);
+        CurrentShader->SetView(View);
+        ModelMatrix = glm::mat4(1.0f);
+        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(3.5, 1, -25.5));
+        ModelMatrix = glm::rotate(ModelMatrix, glm::radians(330.0f), glm::vec3(1.0, 1.0, 0.0));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(5, 1, 1));
+        CurrentShader->SetModel(ModelMatrix);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, LeafDiffuseTexture);
+        glBindVertexArray(CubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
+
 
         //Sun
         glUseProgram(ColorShader.GetId());
