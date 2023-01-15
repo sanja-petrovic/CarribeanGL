@@ -23,7 +23,7 @@ int WindowHeight = 1080;
 const float TargetFPS = 60.0f;
 const std::string WindowTitle = "CaribbeanGL";
 const float SEA_LEVEL_CHANGE = 0.05f;
-const float FIRE_COLOR_CHANGE = 0.01f;
+const float FIRE_INTENSITY_CHANGE = 0.01f;
 
 struct Input {
     bool MoveLeft;
@@ -155,6 +155,8 @@ int main() {
     unsigned TreeDiffuseTexture = Texture::LoadImageToTexture("ki61/textures/tree.jpg");
     unsigned CloudDiffuseTexture = Texture::LoadImageToTexture("ki61/textures/cloud.png");
     unsigned CloudSpecularTexture = Texture::LoadImageToTexture("ki61/textures/cloud-specular.png");
+    unsigned FireDiffuseTexture = Texture::LoadImageToTexture("ki61/textures/fire.jpg");
+    unsigned LighthouseDiffuseTexture = Texture::LoadImageToTexture("ki61/textures/lighthouse.png");
 
 
     std::vector<float> CubeVertices = {
@@ -223,21 +225,24 @@ int main() {
 
     Shader PhongShaderMaterialTexture("shaders/basic.vert", "shaders/phong_material_texture.frag");
     glUseProgram(PhongShaderMaterialTexture.GetId());
-    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Direction", glm::vec3(0, -15, -10));
-    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Ka", glm::vec3(0.68, 0.66, 0.56)); //žućkasta ambijentalna
-    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Kd", glm::vec3(0.68, 0.66, 0.56)); //žućkasta difuzna
-    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Ks", glm::vec3(0.9, 0.9, 0.9)); //bela spekularna
+    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Direction", glm::vec3(1.0f, -1.0f, 0.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Ka", glm::vec3(0.68f, 0.66f, 0.56f)); //žućkasta ambijentalna
+    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Kd", glm::vec3(0.68f, 0.66f, 0.56f)); //žućkasta difuzna
+    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Ks", glm::vec3(0.9f, 0.9f, 0.9f)); //bela spekularna 
+    PhongShaderMaterialTexture.SetUniform1f("uDirLight.Kc", 1.0f);
+    PhongShaderMaterialTexture.SetUniform1f("uDirLight.Kl", 0.092f);
+    PhongShaderMaterialTexture.SetUniform1f("uDirLight.Kq", 0.092f);
 
-    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Position", glm::vec3(-5, -12, -27));
-    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Ka", glm::vec3(1, 0.58, 0));
-    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Kd", glm::vec3(1, 0.58, 0));
-    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Ks", glm::vec3(1, 0.58, 0));
-    PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kc", 1.0f);
-    PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kl", 0.0f);
-    PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kq", 0.01f);
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Position", glm::vec3(-5.0f, -12.0f, -27.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Ka", glm::vec3(1.0f, 0.58f, 0.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Kd", glm::vec3(1.0f, 0.58f, 0.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Ks", glm::vec3(1.0f, 0.58f, 0.0f));
+    PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kc", 0.05f);
+    PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kl", 0.092f);
+    PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kq", 0.032f);
 
-    /**/PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Position", glm::vec3(0.0f, 3.5f, -2.0f));
-    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Direction", glm::vec3(0.0f, -1.0f, 1.0f));
+   PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Position", glm::vec3(20, -1, -80));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Direction", glm::vec3(0.6, -17.5, -30));
     PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Ka", glm::vec3(0.5, 0.5, 0.5));
     PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Kd", glm::vec3(0.5, 0.5, 0.5));
     PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Ks", glm::vec3(0.5, 0.5, 0.5));
@@ -247,8 +252,8 @@ int main() {
     PhongShaderMaterialTexture.SetUniform1f("uSpotlight.InnerCutOff", glm::cos(glm::radians(12.5f)));
     PhongShaderMaterialTexture.SetUniform1f("uSpotlight.OuterCutOff", glm::cos(glm::radians(17.5f)));
     PhongShaderMaterialTexture.SetUniform1i("uMaterial.Kd", 0);
-    PhongShaderMaterialTexture.SetUniform1i("uMaterial.Ks", 0.5);
-    PhongShaderMaterialTexture.SetUniform1f("uMaterial.Shininess", 100.0f);
+    PhongShaderMaterialTexture.SetUniform1i("uMaterial.Ks", 1);
+    PhongShaderMaterialTexture.SetUniform1f("uMaterial.Shininess", 128.0f);
     glUseProgram(0);
 
     glm::mat4 Projection = glm::perspective(45.0f, WindowWidth / (float)WindowHeight, 0.1f, 100.0f);
@@ -263,6 +268,8 @@ int main() {
     Shader* CurrentShader = &PhongShaderMaterialTexture;
     float seaLevel = 12.0f;
     float seaLevelChange = SEA_LEVEL_CHANGE;
+    float fireLightIntensity = 0.05;
+    float fireIntensityChange = FIRE_INTENSITY_CHANGE;
     Model Cat("ki61/12221_Cat_v1_l3.obj");
     if (!Cat.Load())
     {
@@ -272,7 +279,6 @@ int main() {
     }
     float gComponent = 0.58;
     float bComponent = 0;
-    float fireColorChange = FIRE_COLOR_CHANGE;
     while (!glfwWindowShouldClose(Window)) {
         glfwPollEvents();
         HandleInput(&State);
@@ -285,7 +291,7 @@ int main() {
         CurrentShader->SetView(View);
         CurrentShader->SetUniform3f("uViewPos", FPSCamera.GetPosition());
 
-        //Sea
+        #pragma region Sea
         ModelMatrix = glm::mat4(1.0f);
         ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0, -23, -13));
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(700, seaLevel, 400));
@@ -299,11 +305,10 @@ int main() {
         if (seaLevel > 15) seaLevelChange = -SEA_LEVEL_CHANGE;
         if (seaLevel < 12) seaLevelChange = SEA_LEVEL_CHANGE;
         glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
+        #pragma endregion
 
-        //Islands
-        glUseProgram(CurrentShader->GetId()); 
-        CurrentShader->SetProjection(Projection);
-        CurrentShader->SetView(View);
+
+        #pragma region Islands
         ModelMatrix = glm::mat4(1.0f);
         ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0.6, -17.5, -30));
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(40, 6, 10));
@@ -313,8 +318,6 @@ int main() {
         glBindVertexArray(CubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
 
-        CurrentShader->SetProjection(Projection);
-        CurrentShader->SetView(View);
         ModelMatrix = glm::mat4(1.0f);
         ModelMatrix = glm::translate(ModelMatrix, glm::vec3(60, -17.5, -50));
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(10, 6, 10));
@@ -324,8 +327,6 @@ int main() {
         glBindVertexArray(CubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
 
-        CurrentShader->SetProjection(Projection);
-        CurrentShader->SetView(View);
         ModelMatrix = glm::mat4(1.0f);
         ModelMatrix = glm::translate(ModelMatrix, glm::vec3(-70, -17.5, -70));
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(30, 6, 10));
@@ -334,11 +335,10 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, SandDiffuseTexture);
         glBindVertexArray(CubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
+        #pragma endregion
 
-        //Clouds
+        #pragma region Clouds
         if (cloudsEnabled) {
-            CurrentShader->SetProjection(Projection);
-            CurrentShader->SetView(View);
             ModelMatrix = glm::mat4(1.0f);
             ModelMatrix = glm::translate(ModelMatrix, glm::vec3(30, 17, -70));
             ModelMatrix = glm::scale(ModelMatrix, glm::vec3(30, 10, 10));
@@ -350,8 +350,6 @@ int main() {
             glBindVertexArray(CubeVAO);
             glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
 
-            CurrentShader->SetProjection(Projection);
-            CurrentShader->SetView(View);
             ModelMatrix = glm::mat4(1.0f);
             ModelMatrix = glm::translate(ModelMatrix, glm::vec3(-30, 17, -70));
             ModelMatrix = glm::scale(ModelMatrix, glm::vec3(20, 8, 10));
@@ -363,8 +361,6 @@ int main() {
             glBindVertexArray(CubeVAO);
             glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
 
-            CurrentShader->SetProjection(Projection);
-            CurrentShader->SetView(View);
             ModelMatrix = glm::mat4(1.0f);
             ModelMatrix = glm::translate(ModelMatrix, glm::vec3(80, 14, -75));
             ModelMatrix = glm::scale(ModelMatrix, glm::vec3(15, 5, 6));
@@ -376,8 +372,6 @@ int main() {
             glBindVertexArray(CubeVAO);
             glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
 
-            CurrentShader->SetProjection(Projection);
-            CurrentShader->SetView(View);
             ModelMatrix = glm::mat4(1.0f);
             ModelMatrix = glm::translate(ModelMatrix, glm::vec3(-80, 34, -75));
             ModelMatrix = glm::scale(ModelMatrix, glm::vec3(15, 5, 6));
@@ -389,19 +383,18 @@ int main() {
             glBindVertexArray(CubeVAO);
             glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
         }
+        #pragma endregion
 
-        //Cat
+        #pragma region Model
         ModelMatrix = glm::mat4(1.0f);
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(0.05, 0.05, 0.05));
         ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0.6, -253.5, -500));
         ModelMatrix = glm::rotate(ModelMatrix, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
         CurrentShader->SetModel(ModelMatrix);
-        Cat.Render();
+        Cat.Render(); 
+        #pragma endregion
 
-        //Palm tree
-        glUseProgram(CurrentShader->GetId());
-        CurrentShader->SetProjection(Projection);
-        CurrentShader->SetView(View);
+        #pragma region Palm tree
         ModelMatrix = glm::mat4(1.0f);
         ModelMatrix = glm::translate(ModelMatrix, glm::vec3(1.5, -6.5, -27.5));
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1, 14, 1));
@@ -410,11 +403,9 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, TreeDiffuseTexture);
         glBindVertexArray(CubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
+        #pragma endregion
 
-        //Palm leaves
-        glUseProgram(CurrentShader->GetId());
-        CurrentShader->SetProjection(Projection);
-        CurrentShader->SetView(View);
+        #pragma region Palm leaves
         ModelMatrix = glm::mat4(1.0f);
         ModelMatrix = glm::translate(ModelMatrix, glm::vec3(-0.5, 1, -25.5));
         ModelMatrix = glm::rotate(ModelMatrix, glm::radians(30.0f), glm::vec3(1.0, 1.0, 0.0));
@@ -425,9 +416,6 @@ int main() {
         glBindVertexArray(CubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
 
-        glUseProgram(CurrentShader->GetId());
-        CurrentShader->SetProjection(Projection);
-        CurrentShader->SetView(View);
         ModelMatrix = glm::mat4(1.0f);
         ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0.5, 2, -27.5));
         ModelMatrix = glm::rotate(ModelMatrix, glm::radians(120.0f), glm::vec3(-0.8, 0.5, 0.0));
@@ -438,9 +426,6 @@ int main() {
         glBindVertexArray(CubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
 
-        glUseProgram(CurrentShader->GetId());
-        CurrentShader->SetProjection(Projection);
-        CurrentShader->SetView(View);
         ModelMatrix = glm::mat4(1.0f);
         ModelMatrix = glm::translate(ModelMatrix, glm::vec3(2.5, 2, -27.5));
         ModelMatrix = glm::rotate(ModelMatrix, glm::radians(75.0f), glm::vec3(0.5, 0.5, 0.0));
@@ -451,9 +436,6 @@ int main() {
         glBindVertexArray(CubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
 
-        glUseProgram(CurrentShader->GetId());
-        CurrentShader->SetProjection(Projection);
-        CurrentShader->SetView(View);
         ModelMatrix = glm::mat4(1.0f);
         ModelMatrix = glm::translate(ModelMatrix, glm::vec3(3.5, 1, -25.5));
         ModelMatrix = glm::rotate(ModelMatrix, glm::radians(330.0f), glm::vec3(1.0, 1.0, 0.0));
@@ -463,40 +445,44 @@ int main() {
         glBindTexture(GL_TEXTURE_2D, LeafDiffuseTexture);
         glBindVertexArray(CubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
+        #pragma endregion
 
-        //Sun
-        glUseProgram(ColorShader.GetId());
-        ColorShader.SetProjection(Projection);
-        ColorShader.SetView(View);
+        #pragma region Sun
         ModelMatrix = glm::mat4(1.0f); 
         ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0, 17, -50));
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1, 1, -1));
-        ColorShader.SetModel(ModelMatrix);
+        CurrentShader->SetModel(ModelMatrix);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, FireDiffuseTexture);
         glBindVertexArray(CubeVAO);
-        ColorShader.SetUniform3f("uColor", glm::vec3(1.0f, 0.9f, 0.31f));
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
+        #pragma endregion
 
-        //Fire
-        if (bComponent >= 0.3) fireColorChange = -FIRE_COLOR_CHANGE;
-        if (bComponent <= 0) fireColorChange = FIRE_COLOR_CHANGE;
-        gComponent += fireColorChange / 2;
-        bComponent += fireColorChange;
-
-        cout << gComponent << endl;
-        glUseProgram(ColorShader.GetId());
-        ColorShader.SetProjection(Projection);
-        ColorShader.SetView(View);
+        #pragma region Fire
+        fireLightIntensity += fireIntensityChange;
+        if (fireLightIntensity > 1.0) fireIntensityChange = -FIRE_INTENSITY_CHANGE;
+        if (fireLightIntensity < 0.0) fireIntensityChange = FIRE_INTENSITY_CHANGE;
         ModelMatrix = glm::mat4(1.0f);
-        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(-5, -12, -27));
+        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(-7, -12, -27));
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(3, 3, -4));
-        ColorShader.SetModel(ModelMatrix);
+        CurrentShader->SetModel(ModelMatrix);
+        CurrentShader->SetUniform1f("uPointLight.Kc", fireLightIntensity);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, FireDiffuseTexture);
         glBindVertexArray(CubeVAO);
-        ColorShader.SetUniform3f("uColor", glm::vec3(1, gComponent, bComponent));
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
+        #pragma endregion
 
-
-
-        
+        #pragma region Lighthouses
+        ModelMatrix = glm::mat4(1.0f);
+        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(20, -1, -80));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1, 5, -1));
+        CurrentShader->SetModel(ModelMatrix);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, LighthouseDiffuseTexture);
+        glBindVertexArray(CubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
+        #pragma endregion
         glBindVertexArray(0);
         glUseProgram(0);
         glfwSwapBuffers(Window);
