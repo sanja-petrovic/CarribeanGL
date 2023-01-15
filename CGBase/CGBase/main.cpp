@@ -23,6 +23,7 @@ int WindowHeight = 1080;
 const float TargetFPS = 60.0f;
 const std::string WindowTitle = "CaribbeanGL";
 const float SEA_LEVEL_CHANGE = 0.05f;
+const float FIRE_COLOR_CHANGE = 0.01f;
 
 struct Input {
     bool MoveLeft;
@@ -269,6 +270,9 @@ int main() {
         glfwTerminate();
         return -1;
     }
+    float gComponent = 0.58;
+    float bComponent = 0;
+    float fireColorChange = FIRE_COLOR_CHANGE;
     while (!glfwWindowShouldClose(Window)) {
         glfwPollEvents();
         HandleInput(&State);
@@ -291,7 +295,6 @@ int main() {
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, WaterSpecularTexture);
         glBindVertexArray(CubeVAO);
-        cout << seaLevel << endl;
         seaLevel += seaLevelChange;
         if (seaLevel > 15) seaLevelChange = -SEA_LEVEL_CHANGE;
         if (seaLevel < 12) seaLevelChange = SEA_LEVEL_CHANGE;
@@ -461,7 +464,6 @@ int main() {
         glBindVertexArray(CubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
 
-
         //Sun
         glUseProgram(ColorShader.GetId());
         ColorShader.SetProjection(Projection);
@@ -474,22 +476,26 @@ int main() {
         ColorShader.SetUniform3f("uColor", glm::vec3(1.0f, 0.9f, 0.31f));
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
-
         //Fire
-        fireVisible = int(glfwGetTime()) % 2 == 0;
+        if (bComponent >= 0.3) fireColorChange = -FIRE_COLOR_CHANGE;
+        if (bComponent <= 0) fireColorChange = FIRE_COLOR_CHANGE;
+        gComponent += fireColorChange / 2;
+        bComponent += fireColorChange;
 
-        if (fireVisible) {
-            glUseProgram(ColorShader.GetId());
-            ColorShader.SetProjection(Projection);
-            ColorShader.SetView(View);
-            ModelMatrix = glm::mat4(1.0f);
-            ModelMatrix = glm::translate(ModelMatrix, glm::vec3(-5, -12, -27));
-            ModelMatrix = glm::scale(ModelMatrix, glm::vec3(3, 3, -4));
-            ColorShader.SetModel(ModelMatrix);
-            glBindVertexArray(CubeVAO);
-            ColorShader.SetUniform3f("uColor", glm::vec3(1, 0.64, 0.15));
-            glDrawArrays(GL_TRIANGLES, 0, 36);
-        }
+        cout << gComponent << endl;
+        glUseProgram(ColorShader.GetId());
+        ColorShader.SetProjection(Projection);
+        ColorShader.SetView(View);
+        ModelMatrix = glm::mat4(1.0f);
+        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(-5, -12, -27));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(3, 3, -4));
+        ColorShader.SetModel(ModelMatrix);
+        glBindVertexArray(CubeVAO);
+        ColorShader.SetUniform3f("uColor", glm::vec3(1, gComponent, bComponent));
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+
+
         
         glBindVertexArray(0);
         glUseProgram(0);
