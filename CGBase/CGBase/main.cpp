@@ -229,12 +229,12 @@ int main() {
     PhongShaderMaterialTexture.SetUniform3f("uDirLight.Ks", glm::vec3(0.9, 0.9, 0.9)); //bela spekularna
 
     PhongShaderMaterialTexture.SetUniform3f("uPointLight.Position", glm::vec3(-5, -12, -27));
-    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Ka", glm::vec3(1, 0.67, 0.42));
-    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Kd", glm::vec3(1, 0.43, 0));
-    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Ks", glm::vec3(1, 0.85, 0.29));
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Ka", glm::vec3(1, 0.58, 0));
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Kd", glm::vec3(1, 0.58, 0));
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Ks", glm::vec3(1, 0.58, 0));
     PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kc", 1.0f);
-    PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kl", 0.092f);
-    PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kq", 0.032f);
+    PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kl", 0.0f);
+    PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kq", 0.01f);
 
     /**/PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Position", glm::vec3(0.0f, 3.5f, -2.0f));
     PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Direction", glm::vec3(0.0f, -1.0f, 1.0f));
