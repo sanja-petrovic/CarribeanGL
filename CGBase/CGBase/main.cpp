@@ -420,18 +420,31 @@ int main() {
         glBindVertexArray(CubeVAO);
         glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
 
-        /*glUseProgram(CurrentShader->GetId());
+        glUseProgram(CurrentShader->GetId());
         CurrentShader->SetProjection(Projection);
         CurrentShader->SetView(View);
         ModelMatrix = glm::mat4(1.0f);
-        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0.5, 2, -25.5));
-        ModelMatrix = glm::rotate(ModelMatrix, glm::radians(90.0f), glm::vec3(-1.0, 1.0, 0.0));
+        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0.5, 2, -27.5));
+        ModelMatrix = glm::rotate(ModelMatrix, glm::radians(120.0f), glm::vec3(-0.8, 0.5, 0.0));
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(5, 1, 1));
         CurrentShader->SetModel(ModelMatrix);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, LeafDiffuseTexture);
         glBindVertexArray(CubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);*/
+        glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
+
+        glUseProgram(CurrentShader->GetId());
+        CurrentShader->SetProjection(Projection);
+        CurrentShader->SetView(View);
+        ModelMatrix = glm::mat4(1.0f);
+        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(2.5, 2, -27.5));
+        ModelMatrix = glm::rotate(ModelMatrix, glm::radians(75.0f), glm::vec3(0.5, 0.5, 0.0));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(5, 1, 1));
+        CurrentShader->SetModel(ModelMatrix);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, LeafDiffuseTexture);
+        glBindVertexArray(CubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
 
         glUseProgram(CurrentShader->GetId());
         CurrentShader->SetProjection(Projection);
