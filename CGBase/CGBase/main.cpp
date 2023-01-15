@@ -242,15 +242,15 @@ int main() {
     PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kq", 0.032f);
 
     PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Position", glm::vec3(40, -10, -70));
-    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Direction", glm::vec3(-170, 0, 1000));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Direction", glm::vec3(-170, 0, 100));
     PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Ka", glm::vec3(1.0f, 1.0f, 1.0f));
     PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Kd", glm::vec3(1.0f, 1.0f, 1.0f));
     PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Ks", glm::vec3(1.0f, 1.0f, 1.0f));
     PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Kc", 0.05f);
     PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Kl", 0.1f);
     PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Kq", 0.02f);
-    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.InnerCutOff", glm::cos(glm::radians(30.0f)));
-    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.OuterCutOff", glm::cos(glm::radians(205.0f)));
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.InnerCutOff", glm::cos(glm::radians(12.0f)));
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.OuterCutOff", glm::cos(glm::radians(80.0f)));
 
     
     PhongShaderMaterialTexture.SetUniform1i("uMaterial.Kd", 0);

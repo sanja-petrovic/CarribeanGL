@@ -90,6 +90,6 @@ void main() {
 	float SpotIntensity = clamp((Theta - uSpotlight.OuterCutOff) / Epsilon, 0.0f, 1.0f);
 	vec3 SpotColor = SpotIntensity * SpotAttenuation * (SpotAmbientColor + SpotDiffuseColor + SpotSpecularColor);
 	
-	vec3 FinalColor =  SpotColor;
+	vec3 FinalColor = DirColor + PtColor + SpotColor;
 	FragColor = vec4(FinalColor, 1.0f);
 }
