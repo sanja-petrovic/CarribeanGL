@@ -232,14 +232,29 @@ int main() {
     PhongShaderMaterialTexture.SetUniform1f("uDirLight.Kc", 1.0f);
     PhongShaderMaterialTexture.SetUniform1f("uDirLight.Kl", 0.092f);
     PhongShaderMaterialTexture.SetUniform1f("uDirLight.Kq", 0.092f);
-
-    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Position", glm::vec3(-5.0f, -12.0f, -27.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight.Position", glm::vec3(-70.0f, -12.5f, -70.0f));
     PhongShaderMaterialTexture.SetUniform3f("uPointLight.Ka", glm::vec3(1.0f, 0.58f, 0.0f));
     PhongShaderMaterialTexture.SetUniform3f("uPointLight.Kd", glm::vec3(1.0f, 0.58f, 0.0f));
     PhongShaderMaterialTexture.SetUniform3f("uPointLight.Ks", glm::vec3(1.0f, 0.58f, 0.0f));
     PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kc", 0.05f);
     PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kl", 0.092f);
     PhongShaderMaterialTexture.SetUniform1f("uPointLight.Kq", 0.032f);
+
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight2.Position", glm::vec3(7.0f, -12.0f, -27.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight2.Ka", glm::vec3(1.0f, 0.58f, 0.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight2.Kd", glm::vec3(1.0f, 0.58f, 0.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight2.Ks", glm::vec3(1.0f, 0.58f, 0.0f));
+    PhongShaderMaterialTexture.SetUniform1f("uPointLight2.Kc", 0.05f);
+    PhongShaderMaterialTexture.SetUniform1f("uPointLight2.Kl", 0.092f);
+    PhongShaderMaterialTexture.SetUniform1f("uPointLight2.Kq", 0.032f);
+
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight3.Position", glm::vec3(60.0f, -12.5f, -50.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight3.Ka", glm::vec3(1.0f, 0.58f, 0.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight3.Kd", glm::vec3(1.0f, 0.58f, 0.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uPointLight3.Ks", glm::vec3(1.0f, 0.58f, 0.0f));
+    PhongShaderMaterialTexture.SetUniform1f("uPointLight3.Kc", 0.05f);
+    PhongShaderMaterialTexture.SetUniform1f("uPointLight3.Kl", 0.092f);
+    PhongShaderMaterialTexture.SetUniform1f("uPointLight3.Kq", 0.032f);
 
     PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Position", glm::vec3(40, -10, -70));
     PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Direction", glm::vec3(-170, 0, 100));
@@ -476,10 +491,30 @@ int main() {
         if (fireLightIntensity > 1.0) fireIntensityChange = -FIRE_INTENSITY_CHANGE;
         if (fireLightIntensity < 0.0) fireIntensityChange = FIRE_INTENSITY_CHANGE;
         ModelMatrix = glm::mat4(1.0f);
-        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(-7, -12, -27));
+        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(-70, -12.5, -70));
         ModelMatrix = glm::scale(ModelMatrix, glm::vec3(3, 3, -4));
         CurrentShader->SetModel(ModelMatrix);
         CurrentShader->SetUniform1f("uPointLight.Kc", fireLightIntensity);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, FireDiffuseTexture);
+        glBindVertexArray(CubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
+
+        ModelMatrix = glm::mat4(1.0f);
+        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(7, -12, -27));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(3, 3, -4));
+        CurrentShader->SetModel(ModelMatrix);
+        CurrentShader->SetUniform1f("uPointLight2.Kc", fireLightIntensity);
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, FireDiffuseTexture);
+        glBindVertexArray(CubeVAO);
+        glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
+
+        ModelMatrix = glm::mat4(1.0f);
+        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(60, -12.5, -50));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(3, 3, -4));
+        CurrentShader->SetModel(ModelMatrix);
+        CurrentShader->SetUniform1f("uPointLight3.Kc", fireLightIntensity);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, FireDiffuseTexture);
         glBindVertexArray(CubeVAO);

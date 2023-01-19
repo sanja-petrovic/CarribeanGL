@@ -32,6 +32,8 @@ struct Material {
 };
 
 uniform PositionalLight uPointLight;
+uniform PositionalLight uPointLight2;
+uniform PositionalLight uPointLight3;
 uniform DirectionalLight uSpotlight;
 uniform DirectionalLight uDirLight;
 uniform Material uMaterial;
@@ -71,6 +73,34 @@ void main() {
 	float PtAttenuation = 1.0f / (uPointLight.Kc + uPointLight.Kl * PtLightDistance + uPointLight.Kq * (PtLightDistance * PtLightDistance));
 	vec3 PtColor = PtAttenuation * (PtAmbientColor + PtDiffuseColor + PtSpecularColor);
 
+	// Point light 2
+	vec3 PtLightVector2 = normalize(uPointLight2.Position - vWorldSpaceFragment);
+	float PtDiffuse2 = max(dot(vWorldSpaceNormal, PtLightVector2), 0.0f);
+	vec3 PtReflectDirection2 = reflect(-PtLightVector2, vWorldSpaceNormal);
+	float PtSpecular2 = pow(max(dot(ViewDirection, PtReflectDirection2), 0.0f), uMaterial.Shininess);
+
+	vec3 PtAmbientColor2 = uPointLight2.Ka * vec3(texture(uMaterial.Kd, UV));
+	vec3 PtDiffuseColor2 = PtDiffuse2 * uPointLight2.Kd * vec3(texture(uMaterial.Kd, UV));
+	vec3 PtSpecularColor2 = PtSpecular2 * uPointLight2.Ks * vec3(texture(uMaterial.Ks, UV));
+
+	float PtLightDistance2 = length(uPointLight2.Position - vWorldSpaceFragment);
+	float PtAttenuation2 = 1.0f / (uPointLight2.Kc + uPointLight2.Kl * PtLightDistance2 + uPointLight2.Kq * (PtLightDistance2 * PtLightDistance2));
+	vec3 PtColor2 = PtAttenuation2 * (PtAmbientColor2 + PtDiffuseColor2 + PtSpecularColor2);
+
+	// Point light 3
+	vec3 PtLightVector3 = normalize(uPointLight3.Position - vWorldSpaceFragment);
+	float PtDiffuse3 = max(dot(vWorldSpaceNormal, PtLightVector3), 0.0f);
+	vec3 PtReflectDirection3 = reflect(-PtLightVector3, vWorldSpaceNormal);
+	float PtSpecular3 = pow(max(dot(ViewDirection, PtReflectDirection3), 0.0f), uMaterial.Shininess);
+
+	vec3 PtAmbientColor3 = uPointLight3.Ka * vec3(texture(uMaterial.Kd, UV));
+	vec3 PtDiffuseColor3 = PtDiffuse3 * uPointLight3.Kd * vec3(texture(uMaterial.Kd, UV));
+	vec3 PtSpecularColor3 = PtSpecular3 * uPointLight3.Ks * vec3(texture(uMaterial.Ks, UV));
+
+	float PtLightDistance3 = length(uPointLight3.Position - vWorldSpaceFragment);
+	float PtAttenuation3 = 1.0f / (uPointLight3.Kc + uPointLight3.Kl * PtLightDistance3 + uPointLight3.Kq * (PtLightDistance3 * PtLightDistance3));
+	vec3 PtColor3 = PtAttenuation3 * (PtAmbientColor3 + PtDiffuseColor3 + PtSpecularColor3);
+
 	// NOTE(Jovan): Spotlight
 	vec3 SpotlightVector = normalize(uSpotlight.Position - vWorldSpaceFragment);
 
@@ -90,6 +120,6 @@ void main() {
 	float SpotIntensity = clamp((Theta - uSpotlight.OuterCutOff) / Epsilon, 0.0f, 1.0f);
 	vec3 SpotColor = SpotIntensity * SpotAttenuation * (SpotAmbientColor + SpotDiffuseColor + SpotSpecularColor);
 	
-	vec3 FinalColor = DirColor + PtColor + SpotColor;
+	vec3 FinalColor = DirColor + PtColor + PtColor2 + PtColor3 + SpotColor;
 	FragColor = vec4(FinalColor, 1.0f);
 }
