@@ -35,6 +35,7 @@ uniform PositionalLight uPointLight;
 uniform PositionalLight uPointLight2;
 uniform PositionalLight uPointLight3;
 uniform DirectionalLight uSpotlight;
+uniform DirectionalLight uSpotlight2;
 uniform DirectionalLight uDirLight;
 uniform Material uMaterial;
 uniform vec3 uViewPos;
@@ -113,12 +114,31 @@ void main() {
 	vec3 SpotSpecularColor = SpotSpecular * uSpotlight.Ks * vec3(texture(uMaterial.Ks, UV));
 
 	float SpotlightDistance = length(uSpotlight.Position - vWorldSpaceFragment);
-	float SpotAttenuation = 2.5f / (uSpotlight.Kc + uSpotlight.Kl * SpotlightDistance + uSpotlight.Kq * (SpotlightDistance * SpotlightDistance));
+	float SpotAttenuation = 1.0f / (uSpotlight.Kc + uSpotlight.Kl * SpotlightDistance + uSpotlight.Kq * (SpotlightDistance * SpotlightDistance));
 
 	float Theta = dot(SpotlightVector, normalize(-uSpotlight.Direction));
 	float Epsilon = uSpotlight.InnerCutOff - uSpotlight.OuterCutOff;
 	float SpotIntensity = clamp((Theta - uSpotlight.OuterCutOff) / Epsilon, 0.0f, 1.0f);
 	vec3 SpotColor = SpotIntensity * SpotAttenuation * (SpotAmbientColor + SpotDiffuseColor + SpotSpecularColor);
+
+	//Spotlight2
+	vec3 SpotlightVector2 = normalize(uSpotlight2.Position - vWorldSpaceFragment);
+
+	float SpotDiffuse2 = max(dot(vWorldSpaceNormal, SpotlightVector2), 0.0f);
+	vec3 SpotReflectDirection2 = reflect(-SpotlightVector2, vWorldSpaceNormal);
+	float SpotSpecular2 = pow(max(dot(ViewDirection, SpotReflectDirection2), 0.0f), uMaterial.Shininess);
+
+	vec3 SpotAmbientColor2 = uSpotlight2.Ka * vec3(texture(uMaterial.Kd, UV));
+	vec3 SpotDiffuseColor2 = SpotDiffuse2 * uSpotlight2.Kd * vec3(texture(uMaterial.Kd, UV));
+	vec3 SpotSpecularColor2 = SpotSpecular2 * uSpotlight2.Ks * vec3(texture(uMaterial.Ks, UV));
+
+	float SpotlightDistance2 = length(uSpotlight2.Position - vWorldSpaceFragment);
+	float SpotAttenuation2 = 2.5f / (uSpotlight2.Kc + uSpotlight2.Kl * SpotlightDistance2 + uSpotlight2.Kq * (SpotlightDistance2 * SpotlightDistance2));
+
+	float Theta2 = dot(SpotlightVector2, normalize(-uSpotlight2.Direction));
+	float Epsilon2 = uSpotlight2.InnerCutOff - uSpotlight2.OuterCutOff;
+	float SpotIntensity2 = clamp((Theta2 - uSpotlight2.OuterCutOff) / Epsilon2, 0.0f, 1.0f);
+	vec3 SpotColor2 = SpotIntensity2 * SpotAttenuation2 * (SpotAmbientColor2 + SpotDiffuseColor2 + SpotSpecularColor2);
 	
 	vec3 FinalColor = DirColor + PtColor + PtColor2 + PtColor3 + SpotColor;
 	FragColor = vec4(FinalColor, 1.0f);

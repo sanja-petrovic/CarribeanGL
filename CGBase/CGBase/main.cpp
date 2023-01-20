@@ -232,6 +232,7 @@ int main() {
     PhongShaderMaterialTexture.SetUniform1f("uDirLight.Kc", 1.0f);
     PhongShaderMaterialTexture.SetUniform1f("uDirLight.Kl", 0.092f);
     PhongShaderMaterialTexture.SetUniform1f("uDirLight.Kq", 0.092f);
+
     PhongShaderMaterialTexture.SetUniform3f("uPointLight.Position", glm::vec3(-70.0f, -12.5f, -70.0f));
     PhongShaderMaterialTexture.SetUniform3f("uPointLight.Ka", glm::vec3(1.0f, 0.58f, 0.0f));
     PhongShaderMaterialTexture.SetUniform3f("uPointLight.Kd", glm::vec3(1.0f, 0.58f, 0.0f));
@@ -256,18 +257,28 @@ int main() {
     PhongShaderMaterialTexture.SetUniform1f("uPointLight3.Kl", 0.092f);
     PhongShaderMaterialTexture.SetUniform1f("uPointLight3.Kq", 0.032f);
 
-    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Position", glm::vec3(40, -10, -70));
-    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Direction", glm::vec3(-170, 0, 100));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Position", glm::vec3(30, -5, -70));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Direction", glm::vec3(0, 0, 150));
     PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Ka", glm::vec3(1.0f, 1.0f, 1.0f));
     PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Kd", glm::vec3(1.0f, 1.0f, 1.0f));
     PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Ks", glm::vec3(1.0f, 1.0f, 1.0f));
     PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Kc", 0.05f);
-    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Kl", 0.1f);
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Kl", 0.092f);
     PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Kq", 0.02f);
-    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.InnerCutOff", glm::cos(glm::radians(12.0f)));
-    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.OuterCutOff", glm::cos(glm::radians(80.0f)));
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.InnerCutOff", glm::cos(glm::radians(0.0f)));
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.OuterCutOff", glm::cos(glm::radians(90.0f)));
 
-    
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight2.Position", glm::vec3(60, 0, -70));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight2.Direction", glm::vec3(1000, -10, -100));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight2.Ka", glm::vec3(1.0f, 1.0f, 1.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight2.Kd", glm::vec3(1.0f, 1.0f, 1.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight2.Ks", glm::vec3(1.0f, 1.0f, 1.0f));
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight2.Kc", 0.05f);
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight2.Kl", 0.092f);
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight2.Kq", 0.02f);
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight2.InnerCutOff", glm::cos(glm::radians(0.0f)));
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight2.OuterCutOff", glm::cos(glm::radians(60.0f)));
+
     PhongShaderMaterialTexture.SetUniform1i("uMaterial.Kd", 0);
     PhongShaderMaterialTexture.SetUniform1i("uMaterial.Ks", 1);
     PhongShaderMaterialTexture.SetUniform1f("uMaterial.Shininess", 128.0f);
@@ -310,8 +321,8 @@ int main() {
 
         #pragma region Lighthouse
         ModelMatrix = glm::mat4(1.0f);
-        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(40, -14, -70));
-        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(1, 10, -1));
+        ModelMatrix = glm::translate(ModelMatrix, glm::vec3(40, -10, -70));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(3, 20, -1));
         CurrentShader->SetModel(ModelMatrix);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, LighthouseDiffuseTexture);
@@ -339,7 +350,7 @@ int main() {
         #pragma region Islands
         ModelMatrix = glm::mat4(1.0f);
         ModelMatrix = glm::translate(ModelMatrix, glm::vec3(0.6, -17.5, -30));
-        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(40, 6, 10));
+        ModelMatrix = glm::scale(ModelMatrix, glm::vec3(40, 6, 30));
         CurrentShader->SetModel(ModelMatrix);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, SandDiffuseTexture);
