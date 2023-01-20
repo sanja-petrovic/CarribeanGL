@@ -25,8 +25,6 @@ struct DirectionalLight {
 };
 
 struct Material {
-	// NOTE(Jovan): Diffuse is used as ambient as well since the light source
-	// defines the ambient colour
 	sampler2D Kd;
 	sampler2D Ks;
 	float Shininess;
@@ -61,7 +59,7 @@ void main() {
 	vec3 DirSpecularColor = uDirLight.Ks * DirSpecular * vec3(texture(uMaterial.Ks, UV));
 	vec3 DirColor = DirAmbientColor + DirDiffuseColor + DirSpecularColor;
 
-	// NOTE(Jovan): Point light
+	// Point light
 	vec3 PtLightVector = normalize(uPointLight.Position - vWorldSpaceFragment);
 	float PtDiffuse = max(dot(vWorldSpaceNormal, PtLightVector), 0.0f);
 	vec3 PtReflectDirection = reflect(-PtLightVector, vWorldSpaceNormal);
@@ -103,7 +101,7 @@ void main() {
 	float PtAttenuation3 = 1.0f / (uPointLight3.Kc + uPointLight3.Kl * PtLightDistance3 + uPointLight3.Kq * (PtLightDistance3 * PtLightDistance3));
 	vec3 PtColor3 = PtAttenuation3 * (PtAmbientColor3 + PtDiffuseColor3 + PtSpecularColor3);
 
-	// NOTE(Jovan): Spotlight
+	// Spotlight
 	vec3 SpotlightVector = normalize(uSpotlight.Position - vWorldSpaceFragment);
 
 	float SpotDiffuse = max(dot(vWorldSpaceNormal, SpotlightVector), 0.0f);
@@ -122,7 +120,7 @@ void main() {
 	float SpotIntensity = clamp((Theta - uSpotlight.OuterCutOff) / Epsilon, 0.0f, 1.0f);
 	vec3 SpotColor = SpotIntensity * SpotAttenuation * (SpotAmbientColor + SpotDiffuseColor + SpotSpecularColor);
 
-	//Spotlight2
+	// Spotlight2
 	vec3 SpotlightVector2 = normalize(uSpotlight2.Position - vWorldSpaceFragment);
 
 	float SpotDiffuse2 = max(dot(vWorldSpaceNormal, SpotlightVector2), 0.0f);
