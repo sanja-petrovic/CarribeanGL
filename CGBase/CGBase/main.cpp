@@ -46,6 +46,7 @@ struct EngineState {
 
 bool cloudsEnabled = true;
 bool fireVisible = true;
+bool spotlightOnly = false;
 
 static void
 ErrorCallback(int error, const char* description) {
@@ -68,6 +69,11 @@ KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode) {
     case GLFW_KEY_UP: UserInput->LookUp = IsDown; break;
     case GLFW_KEY_DOWN: UserInput->LookDown = IsDown; break;
 
+    case GLFW_KEY_P: {
+        if (IsDown) {
+            spotlightOnly ^= true; break;
+        }
+    } break;
     case GLFW_KEY_C: {
         if (IsDown) {
             cloudsEnabled ^= true; break;
@@ -226,12 +232,9 @@ int main() {
     Shader PhongShaderMaterialTexture("shaders/basic.vert", "shaders/phong_material_texture.frag");
     glUseProgram(PhongShaderMaterialTexture.GetId());
     PhongShaderMaterialTexture.SetUniform3f("uDirLight.Direction", glm::vec3(1.0f, -15.0f, -15.0f));
-    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Ka", glm::vec3(0.5, 0.47, 0.32)); //žućkasta ambijentalna
+    PhongShaderMaterialTexture.SetUniform3f("uDirLight.Ka", glm::vec3(0.66, 0.63, 0.45)); //žućkasta ambijentalna
     PhongShaderMaterialTexture.SetUniform3f("uDirLight.Kd", glm::vec3(0.5, 0.47, 0.32)); //žućkasta difuzna
     PhongShaderMaterialTexture.SetUniform3f("uDirLight.Ks", glm::vec3(0.9f, 0.9f, 0.9f)); //bela spekularna 
-    PhongShaderMaterialTexture.SetUniform1f("uDirLight.Kc", 1.0f);
-    PhongShaderMaterialTexture.SetUniform1f("uDirLight.Kl", 0.092f);
-    PhongShaderMaterialTexture.SetUniform1f("uDirLight.Kq", 0.092f);
 
     PhongShaderMaterialTexture.SetUniform3f("uPointLight.Position", glm::vec3(-70.0f, -12.5f, -70.0f));
     PhongShaderMaterialTexture.SetUniform3f("uPointLight.Ka", glm::vec3(1.0f, 0.58f, 0.0f));
@@ -257,27 +260,28 @@ int main() {
     PhongShaderMaterialTexture.SetUniform1f("uPointLight3.Kl", 0.092f);
     PhongShaderMaterialTexture.SetUniform1f("uPointLight3.Kq", 0.032f);
 
-    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Position", glm::vec3(30, -5, -70));
-    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Direction", glm::vec3(0, 0, 150));
-    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Ka", glm::vec3(1.0f, 1.0f, 1.0f));
-    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Kd", glm::vec3(1.0f, 1.0f, 1.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Position", glm::vec3(39.5, -7, -70));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Direction", glm::vec3(-200, -10.5, 100));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Ka", glm::vec3(0.0f, 1.0f, 0.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Kd", glm::vec3(0.0f, 1.0f, 0.0f));
     PhongShaderMaterialTexture.SetUniform3f("uSpotlight.Ks", glm::vec3(1.0f, 1.0f, 1.0f));
     PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Kc", 0.05f);
-    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Kl", 0.092f);
-    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Kq", 0.02f);
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Kl", 0.02f);
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Kq", 0.005f);
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.Allowed", 1);
     PhongShaderMaterialTexture.SetUniform1f("uSpotlight.InnerCutOff", glm::cos(glm::radians(0.0f)));
-    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.OuterCutOff", glm::cos(glm::radians(90.0f)));
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight.OuterCutOff", glm::cos(glm::radians(120.0f)));
 
-    PhongShaderMaterialTexture.SetUniform3f("uSpotlight2.Position", glm::vec3(60, 0, -70));
-    PhongShaderMaterialTexture.SetUniform3f("uSpotlight2.Direction", glm::vec3(1000, -10, -100));
-    PhongShaderMaterialTexture.SetUniform3f("uSpotlight2.Ka", glm::vec3(1.0f, 1.0f, 1.0f));
-    PhongShaderMaterialTexture.SetUniform3f("uSpotlight2.Kd", glm::vec3(1.0f, 1.0f, 1.0f));
-    PhongShaderMaterialTexture.SetUniform3f("uSpotlight2.Ks", glm::vec3(1.0f, 1.0f, 1.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight2.Position", glm::vec3(44.5, -7, -72));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight2.Direction", glm::vec3(200, -10.5, 100));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight2.Ka", glm::vec3(0.0f, 0.0f, 1.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight2.Kd", glm::vec3(0.0f, 0.0f, 1.0f));
+    PhongShaderMaterialTexture.SetUniform3f("uSpotlight2.Ks", glm::vec3(0.0f, 0.0f, 1.0f));
     PhongShaderMaterialTexture.SetUniform1f("uSpotlight2.Kc", 0.05f);
-    PhongShaderMaterialTexture.SetUniform1f("uSpotlight2.Kl", 0.092f);
-    PhongShaderMaterialTexture.SetUniform1f("uSpotlight2.Kq", 0.02f);
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight2.Kl", 0.02f);
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight2.Kq", 0.005f);
     PhongShaderMaterialTexture.SetUniform1f("uSpotlight2.InnerCutOff", glm::cos(glm::radians(0.0f)));
-    PhongShaderMaterialTexture.SetUniform1f("uSpotlight2.OuterCutOff", glm::cos(glm::radians(60.0f)));
+    PhongShaderMaterialTexture.SetUniform1f("uSpotlight2.OuterCutOff", glm::cos(glm::radians(120.0f)));
 
     PhongShaderMaterialTexture.SetUniform1i("uMaterial.Kd", 0);
     PhongShaderMaterialTexture.SetUniform1i("uMaterial.Ks", 1);
@@ -291,7 +295,7 @@ int main() {
     float TargetFrameTime = 1.0f / TargetFPS;
     float StartTime = glfwGetTime();
     float EndTime = glfwGetTime();
-    glClearColor(0.3, 0.66, 0.58, 1.0);
+    glClearColor(0.46, 0.81, 0.79, 1.0);
 
     Shader* CurrentShader = &PhongShaderMaterialTexture;
     float seaLevel = 12.0f;
@@ -307,6 +311,9 @@ int main() {
     }
     float gComponent = 0.58;
     float bComponent = 0;
+
+    float Angle = 0.0f;
+    float Distance = 5.0f;
     while (!glfwWindowShouldClose(Window)) {
         glfwPollEvents();
         HandleInput(&State);
@@ -319,6 +326,12 @@ int main() {
         CurrentShader->SetView(View);
         CurrentShader->SetUniform3f("uViewPos", FPSCamera.GetPosition());
 
+        if (spotlightOnly && !cloudsEnabled) {
+            CurrentShader->SetUniform1f("uSpotlight2.Allowed", 1);
+        }
+        else {
+            CurrentShader->SetUniform1f("uSpotlight2.Allowed", 0);
+        }
         #pragma region Lighthouse
         ModelMatrix = glm::mat4(1.0f);
         ModelMatrix = glm::translate(ModelMatrix, glm::vec3(40, -10, -70));
@@ -327,8 +340,14 @@ int main() {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, LighthouseDiffuseTexture);
         glBindVertexArray(CubeVAO);
+        glm::vec3 SpotLightPosition(Distance * cos(Angle), 2.0f, -2.0f + Distance * sin(Angle));
+        Angle += State.mDT;
+        glm::vec3 SpotLightPosition2(-Distance * cos(Angle), 2.0f, 2.0f - Distance * sin(Angle));
+        CurrentShader->SetUniform3f("uSpotlight.Direction", SpotLightPosition);
+        CurrentShader->SetUniform3f("uSpotlight2.Direction", SpotLightPosition2);
         glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
 
+        
         #pragma endregion
 
         #pragma region Sea
@@ -378,6 +397,7 @@ int main() {
 
         #pragma region Clouds
         if (cloudsEnabled) {
+            CurrentShader->SetUniform1f("uSpotlight.Allowed", 0);
             ModelMatrix = glm::mat4(1.0f);
             ModelMatrix = glm::translate(ModelMatrix, glm::vec3(30, 17, -70));
             ModelMatrix = glm::scale(ModelMatrix, glm::vec3(30, 10, 10));
@@ -421,6 +441,9 @@ int main() {
             glBindTexture(GL_TEXTURE_2D, CloudSpecularTexture);
             glBindVertexArray(CubeVAO);
             glDrawArrays(GL_TRIANGLES, 0, CubeVertices.size() / 8);
+        }
+        else {
+            CurrentShader->SetUniform1f("uSpotlight.Allowed", 1);
         }
         #pragma endregion
 

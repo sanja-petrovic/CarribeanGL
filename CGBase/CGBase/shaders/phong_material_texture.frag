@@ -21,6 +21,7 @@ struct DirectionalLight {
 	float Kc;
 	float Kl;
 	float Kq;
+	float Allowed;
 };
 
 struct Material {
@@ -140,6 +141,13 @@ void main() {
 	float SpotIntensity2 = clamp((Theta2 - uSpotlight2.OuterCutOff) / Epsilon2, 0.0f, 1.0f);
 	vec3 SpotColor2 = SpotIntensity2 * SpotAttenuation2 * (SpotAmbientColor2 + SpotDiffuseColor2 + SpotSpecularColor2);
 	
-	vec3 FinalColor = DirColor + PtColor + PtColor2 + PtColor3 + SpotColor;
+	vec3 FinalColor = DirColor + PtColor + PtColor2 + PtColor3;
+	if (uSpotlight.Allowed == 1) {
+		FinalColor += SpotColor + SpotColor2;
+	} 
+	if (uSpotlight2.Allowed == 1) {
+		FinalColor = SpotColor + SpotColor2;
+	} 
+
 	FragColor = vec4(FinalColor, 1.0f);
 }
